@@ -1,7 +1,6 @@
-/** PURE_IMPORTS_START  PURE_IMPORTS_END */
-var nextHandle = 1;
-var RESOLVED = /*@__PURE__*/ (function () { return /*@__PURE__*/ Promise.resolve(); })();
-var activeHandles = {};
+let nextHandle = 1;
+const RESOLVED = (() => Promise.resolve())();
+const activeHandles = {};
 function findAndClearHandle(handle) {
     if (handle in activeHandles) {
         delete activeHandles[handle];
@@ -9,19 +8,19 @@ function findAndClearHandle(handle) {
     }
     return false;
 }
-export var Immediate = {
-    setImmediate: function (cb) {
-        var handle = nextHandle++;
+export const Immediate = {
+    setImmediate(cb) {
+        const handle = nextHandle++;
         activeHandles[handle] = true;
-        RESOLVED.then(function () { return findAndClearHandle(handle) && cb(); });
+        RESOLVED.then(() => findAndClearHandle(handle) && cb());
         return handle;
     },
-    clearImmediate: function (handle) {
+    clearImmediate(handle) {
         findAndClearHandle(handle);
     },
 };
-export var TestTools = {
-    pending: function () {
+export const TestTools = {
+    pending() {
         return Object.keys(activeHandles).length;
     }
 };

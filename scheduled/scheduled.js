@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START _scheduleObservable,_schedulePromise,_scheduleArray,_scheduleIterable,_util_isInteropObservable,_util_isPromise,_util_isArrayLike,_util_isIterable PURE_IMPORTS_END */
 import { scheduleObservable } from './scheduleObservable';
 import { schedulePromise } from './schedulePromise';
 import { scheduleArray } from './scheduleArray';

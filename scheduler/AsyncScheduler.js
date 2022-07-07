@@ -1,43 +1,33 @@
-/** PURE_IMPORTS_START tslib,_Scheduler PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Scheduler } from '../Scheduler';
-var AsyncScheduler = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(AsyncScheduler, _super);
-    function AsyncScheduler(SchedulerAction, now) {
-        if (now === void 0) {
-            now = Scheduler.now;
-        }
-        var _this = _super.call(this, SchedulerAction, function () {
-            if (AsyncScheduler.delegate && AsyncScheduler.delegate !== _this) {
+export class AsyncScheduler extends Scheduler {
+    constructor(SchedulerAction, now = Scheduler.now) {
+        super(SchedulerAction, () => {
+            if (AsyncScheduler.delegate && AsyncScheduler.delegate !== this) {
                 return AsyncScheduler.delegate.now();
             }
             else {
                 return now();
             }
-        }) || this;
-        _this.actions = [];
-        _this.active = false;
-        _this.scheduled = undefined;
-        return _this;
+        });
+        this.actions = [];
+        this.active = false;
+        this.scheduled = undefined;
     }
-    AsyncScheduler.prototype.schedule = function (work, delay, state) {
-        if (delay === void 0) {
-            delay = 0;
-        }
+    schedule(work, delay = 0, state) {
         if (AsyncScheduler.delegate && AsyncScheduler.delegate !== this) {
             return AsyncScheduler.delegate.schedule(work, delay, state);
         }
         else {
-            return _super.prototype.schedule.call(this, work, delay, state);
+            return super.schedule(work, delay, state);
         }
-    };
-    AsyncScheduler.prototype.flush = function (action) {
-        var actions = this.actions;
+    }
+    flush(action) {
+        const { actions } = this;
         if (this.active) {
             actions.push(action);
             return;
         }
-        var error;
+        let error;
         this.active = true;
         do {
             if (error = action.execute(action.state, action.delay)) {
@@ -51,8 +41,6 @@ var AsyncScheduler = /*@__PURE__*/ (function (_super) {
             }
             throw error;
         }
-    };
-    return AsyncScheduler;
-}(Scheduler));
-export { AsyncScheduler };
+    }
+}
 //# sourceMappingURL=AsyncScheduler.js.map

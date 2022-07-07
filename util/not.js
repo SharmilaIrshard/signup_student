@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START  PURE_IMPORTS_END */
 export function not(pred, thisArg) {
     function notPred() {
         return !(notPred.pred.apply(notPred.thisArg, arguments));

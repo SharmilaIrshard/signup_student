@@ -1,16 +1,15 @@
-/** PURE_IMPORTS_START _Observable,_Subscription,_symbol_observable PURE_IMPORTS_END */
 import { Observable } from '../Observable';
 import { Subscription } from '../Subscription';
 import { observable as Symbol_observable } from '../symbol/observable';
 export function scheduleObservable(input, scheduler) {
-    return new Observable(function (subscriber) {
-        var sub = new Subscription();
-        sub.add(scheduler.schedule(function () {
-            var observable = input[Symbol_observable]();
+    return new Observable(subscriber => {
+        const sub = new Subscription();
+        sub.add(scheduler.schedule(() => {
+            const observable = input[Symbol_observable]();
             sub.add(observable.subscribe({
-                next: function (value) { sub.add(scheduler.schedule(function () { return subscriber.next(value); })); },
-                error: function (err) { sub.add(scheduler.schedule(function () { return subscriber.error(err); })); },
-                complete: function () { sub.add(scheduler.schedule(function () { return subscriber.complete(); })); },
+                next(value) { sub.add(scheduler.schedule(() => subscriber.next(value))); },
+                error(err) { sub.add(scheduler.schedule(() => subscriber.error(err))); },
+                complete() { sub.add(scheduler.schedule(() => subscriber.complete())); },
             }));
         }));
         return sub;

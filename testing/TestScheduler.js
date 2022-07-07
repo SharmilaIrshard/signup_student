@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Observable,_Notification,_ColdObservable,_HotObservable,_SubscriptionLog,_scheduler_VirtualTimeScheduler,_scheduler_AsyncScheduler PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Observable } from '../Observable';
 import { Notification } from '../Notification';
 import { ColdObservable } from './ColdObservable';
@@ -7,143 +5,129 @@ import { HotObservable } from './HotObservable';
 import { SubscriptionLog } from './SubscriptionLog';
 import { VirtualTimeScheduler, VirtualAction } from '../scheduler/VirtualTimeScheduler';
 import { AsyncScheduler } from '../scheduler/AsyncScheduler';
-var defaultMaxFrame = 750;
-var TestScheduler = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(TestScheduler, _super);
-    function TestScheduler(assertDeepEqual) {
-        var _this = _super.call(this, VirtualAction, defaultMaxFrame) || this;
-        _this.assertDeepEqual = assertDeepEqual;
-        _this.hotObservables = [];
-        _this.coldObservables = [];
-        _this.flushTests = [];
-        _this.runMode = false;
-        return _this;
+const defaultMaxFrame = 750;
+export class TestScheduler extends VirtualTimeScheduler {
+    constructor(assertDeepEqual) {
+        super(VirtualAction, defaultMaxFrame);
+        this.assertDeepEqual = assertDeepEqual;
+        this.hotObservables = [];
+        this.coldObservables = [];
+        this.flushTests = [];
+        this.runMode = false;
     }
-    TestScheduler.prototype.createTime = function (marbles) {
-        var indexOf = marbles.indexOf('|');
+    createTime(marbles) {
+        const indexOf = marbles.indexOf('|');
         if (indexOf === -1) {
             throw new Error('marble diagram for time should have a completion marker "|"');
         }
         return indexOf * TestScheduler.frameTimeFactor;
-    };
-    TestScheduler.prototype.createColdObservable = function (marbles, values, error) {
+    }
+    createColdObservable(marbles, values, error) {
         if (marbles.indexOf('^') !== -1) {
             throw new Error('cold observable cannot have subscription offset "^"');
         }
         if (marbles.indexOf('!') !== -1) {
             throw new Error('cold observable cannot have unsubscription marker "!"');
         }
-        var messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
-        var cold = new ColdObservable(messages, this);
+        const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
+        const cold = new ColdObservable(messages, this);
         this.coldObservables.push(cold);
         return cold;
-    };
-    TestScheduler.prototype.createHotObservable = function (marbles, values, error) {
+    }
+    createHotObservable(marbles, values, error) {
         if (marbles.indexOf('!') !== -1) {
             throw new Error('hot observable cannot have unsubscription marker "!"');
         }
-        var messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
-        var subject = new HotObservable(messages, this);
+        const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
+        const subject = new HotObservable(messages, this);
         this.hotObservables.push(subject);
         return subject;
-    };
-    TestScheduler.prototype.materializeInnerObservable = function (observable, outerFrame) {
-        var _this = this;
-        var messages = [];
-        observable.subscribe(function (value) {
-            messages.push({ frame: _this.frame - outerFrame, notification: Notification.createNext(value) });
-        }, function (err) {
-            messages.push({ frame: _this.frame - outerFrame, notification: Notification.createError(err) });
-        }, function () {
-            messages.push({ frame: _this.frame - outerFrame, notification: Notification.createComplete() });
+    }
+    materializeInnerObservable(observable, outerFrame) {
+        const messages = [];
+        observable.subscribe((value) => {
+            messages.push({ frame: this.frame - outerFrame, notification: Notification.createNext(value) });
+        }, (err) => {
+            messages.push({ frame: this.frame - outerFrame, notification: Notification.createError(err) });
+        }, () => {
+            messages.push({ frame: this.frame - outerFrame, notification: Notification.createComplete() });
         });
         return messages;
-    };
-    TestScheduler.prototype.expectObservable = function (observable, subscriptionMarbles) {
-        var _this = this;
-        if (subscriptionMarbles === void 0) {
-            subscriptionMarbles = null;
-        }
-        var actual = [];
-        var flushTest = { actual: actual, ready: false };
-        var subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode);
-        var subscriptionFrame = subscriptionParsed.subscribedFrame === Number.POSITIVE_INFINITY ?
+    }
+    expectObservable(observable, subscriptionMarbles = null) {
+        const actual = [];
+        const flushTest = { actual, ready: false };
+        const subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode);
+        const subscriptionFrame = subscriptionParsed.subscribedFrame === Number.POSITIVE_INFINITY ?
             0 : subscriptionParsed.subscribedFrame;
-        var unsubscriptionFrame = subscriptionParsed.unsubscribedFrame;
-        var subscription;
-        this.schedule(function () {
-            subscription = observable.subscribe(function (x) {
-                var value = x;
+        const unsubscriptionFrame = subscriptionParsed.unsubscribedFrame;
+        let subscription;
+        this.schedule(() => {
+            subscription = observable.subscribe(x => {
+                let value = x;
                 if (x instanceof Observable) {
-                    value = _this.materializeInnerObservable(value, _this.frame);
+                    value = this.materializeInnerObservable(value, this.frame);
                 }
-                actual.push({ frame: _this.frame, notification: Notification.createNext(value) });
-            }, function (err) {
-                actual.push({ frame: _this.frame, notification: Notification.createError(err) });
-            }, function () {
-                actual.push({ frame: _this.frame, notification: Notification.createComplete() });
+                actual.push({ frame: this.frame, notification: Notification.createNext(value) });
+            }, (err) => {
+                actual.push({ frame: this.frame, notification: Notification.createError(err) });
+            }, () => {
+                actual.push({ frame: this.frame, notification: Notification.createComplete() });
             });
         }, subscriptionFrame);
         if (unsubscriptionFrame !== Number.POSITIVE_INFINITY) {
-            this.schedule(function () { return subscription.unsubscribe(); }, unsubscriptionFrame);
+            this.schedule(() => subscription.unsubscribe(), unsubscriptionFrame);
         }
         this.flushTests.push(flushTest);
-        var runMode = this.runMode;
+        const { runMode } = this;
         return {
-            toBe: function (marbles, values, errorValue) {
+            toBe(marbles, values, errorValue) {
                 flushTest.ready = true;
                 flushTest.expected = TestScheduler.parseMarbles(marbles, values, errorValue, true, runMode);
             }
         };
-    };
-    TestScheduler.prototype.expectSubscriptions = function (actualSubscriptionLogs) {
-        var flushTest = { actual: actualSubscriptionLogs, ready: false };
+    }
+    expectSubscriptions(actualSubscriptionLogs) {
+        const flushTest = { actual: actualSubscriptionLogs, ready: false };
         this.flushTests.push(flushTest);
-        var runMode = this.runMode;
+        const { runMode } = this;
         return {
-            toBe: function (marbles) {
-                var marblesArray = (typeof marbles === 'string') ? [marbles] : marbles;
+            toBe(marbles) {
+                const marblesArray = (typeof marbles === 'string') ? [marbles] : marbles;
                 flushTest.ready = true;
-                flushTest.expected = marblesArray.map(function (marbles) {
-                    return TestScheduler.parseMarblesAsSubscriptions(marbles, runMode);
-                });
+                flushTest.expected = marblesArray.map(marbles => TestScheduler.parseMarblesAsSubscriptions(marbles, runMode));
             }
         };
-    };
-    TestScheduler.prototype.flush = function () {
-        var _this = this;
-        var hotObservables = this.hotObservables;
+    }
+    flush() {
+        const hotObservables = this.hotObservables;
         while (hotObservables.length > 0) {
             hotObservables.shift().setup();
         }
-        _super.prototype.flush.call(this);
-        this.flushTests = this.flushTests.filter(function (test) {
+        super.flush();
+        this.flushTests = this.flushTests.filter(test => {
             if (test.ready) {
-                _this.assertDeepEqual(test.actual, test.expected);
+                this.assertDeepEqual(test.actual, test.expected);
                 return false;
             }
             return true;
         });
-    };
-    TestScheduler.parseMarblesAsSubscriptions = function (marbles, runMode) {
-        var _this = this;
-        if (runMode === void 0) {
-            runMode = false;
-        }
+    }
+    static parseMarblesAsSubscriptions(marbles, runMode = false) {
         if (typeof marbles !== 'string') {
             return new SubscriptionLog(Number.POSITIVE_INFINITY);
         }
-        var len = marbles.length;
-        var groupStart = -1;
-        var subscriptionFrame = Number.POSITIVE_INFINITY;
-        var unsubscriptionFrame = Number.POSITIVE_INFINITY;
-        var frame = 0;
-        var _loop_1 = function (i) {
-            var nextFrame = frame;
-            var advanceFrameBy = function (count) {
-                nextFrame += count * _this.frameTimeFactor;
+        const len = marbles.length;
+        let groupStart = -1;
+        let subscriptionFrame = Number.POSITIVE_INFINITY;
+        let unsubscriptionFrame = Number.POSITIVE_INFINITY;
+        let frame = 0;
+        for (let i = 0; i < len; i++) {
+            let nextFrame = frame;
+            const advanceFrameBy = (count) => {
+                nextFrame += count * this.frameTimeFactor;
             };
-            var c = marbles[i];
+            const c = marbles[i];
             switch (c) {
                 case ' ':
                     if (!runMode) {
@@ -179,13 +163,13 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                 default:
                     if (runMode && c.match(/^[0-9]$/)) {
                         if (i === 0 || marbles[i - 1] === ' ') {
-                            var buffer = marbles.slice(i);
-                            var match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
+                            const buffer = marbles.slice(i);
+                            const match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
                             if (match) {
                                 i += match[0].length - 1;
-                                var duration = parseFloat(match[1]);
-                                var unit = match[2];
-                                var durationInMs = void 0;
+                                const duration = parseFloat(match[1]);
+                                const unit = match[2];
+                                let durationInMs;
                                 switch (unit) {
                                     case 'ms':
                                         durationInMs = duration;
@@ -199,7 +183,7 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                                     default:
                                         break;
                                 }
-                                advanceFrameBy(durationInMs / this_1.frameTimeFactor);
+                                advanceFrameBy(durationInMs / this.frameTimeFactor);
                                 break;
                             }
                         }
@@ -208,12 +192,6 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                         'subscription marble diagram. Found instead \'' + c + '\'.');
             }
             frame = nextFrame;
-            out_i_1 = i;
-        };
-        var this_1 = this, out_i_1;
-        for (var i = 0; i < len; i++) {
-            _loop_1(i);
-            i = out_i_1;
         }
         if (unsubscriptionFrame < 0) {
             return new SubscriptionLog(subscriptionFrame);
@@ -221,39 +199,32 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
         else {
             return new SubscriptionLog(subscriptionFrame, unsubscriptionFrame);
         }
-    };
-    TestScheduler.parseMarbles = function (marbles, values, errorValue, materializeInnerObservables, runMode) {
-        var _this = this;
-        if (materializeInnerObservables === void 0) {
-            materializeInnerObservables = false;
-        }
-        if (runMode === void 0) {
-            runMode = false;
-        }
+    }
+    static parseMarbles(marbles, values, errorValue, materializeInnerObservables = false, runMode = false) {
         if (marbles.indexOf('!') !== -1) {
             throw new Error('conventional marble diagrams cannot have the ' +
                 'unsubscription marker "!"');
         }
-        var len = marbles.length;
-        var testMessages = [];
-        var subIndex = runMode ? marbles.replace(/^[ ]+/, '').indexOf('^') : marbles.indexOf('^');
-        var frame = subIndex === -1 ? 0 : (subIndex * -this.frameTimeFactor);
-        var getValue = typeof values !== 'object' ?
-            function (x) { return x; } :
-            function (x) {
+        const len = marbles.length;
+        const testMessages = [];
+        const subIndex = runMode ? marbles.replace(/^[ ]+/, '').indexOf('^') : marbles.indexOf('^');
+        let frame = subIndex === -1 ? 0 : (subIndex * -this.frameTimeFactor);
+        const getValue = typeof values !== 'object' ?
+            (x) => x :
+            (x) => {
                 if (materializeInnerObservables && values[x] instanceof ColdObservable) {
                     return values[x].messages;
                 }
                 return values[x];
             };
-        var groupStart = -1;
-        var _loop_2 = function (i) {
-            var nextFrame = frame;
-            var advanceFrameBy = function (count) {
-                nextFrame += count * _this.frameTimeFactor;
+        let groupStart = -1;
+        for (let i = 0; i < len; i++) {
+            let nextFrame = frame;
+            const advanceFrameBy = (count) => {
+                nextFrame += count * this.frameTimeFactor;
             };
-            var notification = void 0;
-            var c = marbles[i];
+            let notification;
+            const c = marbles[i];
             switch (c) {
                 case ' ':
                     if (!runMode) {
@@ -285,13 +256,13 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                 default:
                     if (runMode && c.match(/^[0-9]$/)) {
                         if (i === 0 || marbles[i - 1] === ' ') {
-                            var buffer = marbles.slice(i);
-                            var match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
+                            const buffer = marbles.slice(i);
+                            const match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
                             if (match) {
                                 i += match[0].length - 1;
-                                var duration = parseFloat(match[1]);
-                                var unit = match[2];
-                                var durationInMs = void 0;
+                                const duration = parseFloat(match[1]);
+                                const unit = match[2];
+                                let durationInMs;
                                 switch (unit) {
                                     case 'ms':
                                         durationInMs = duration;
@@ -305,7 +276,7 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                                     default:
                                         break;
                                 }
-                                advanceFrameBy(durationInMs / this_2.frameTimeFactor);
+                                advanceFrameBy(durationInMs / this.frameTimeFactor);
                                 break;
                             }
                         }
@@ -315,26 +286,20 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
                     break;
             }
             if (notification) {
-                testMessages.push({ frame: groupStart > -1 ? groupStart : frame, notification: notification });
+                testMessages.push({ frame: groupStart > -1 ? groupStart : frame, notification });
             }
             frame = nextFrame;
-            out_i_2 = i;
-        };
-        var this_2 = this, out_i_2;
-        for (var i = 0; i < len; i++) {
-            _loop_2(i);
-            i = out_i_2;
         }
         return testMessages;
-    };
-    TestScheduler.prototype.run = function (callback) {
-        var prevFrameTimeFactor = TestScheduler.frameTimeFactor;
-        var prevMaxFrames = this.maxFrames;
+    }
+    run(callback) {
+        const prevFrameTimeFactor = TestScheduler.frameTimeFactor;
+        const prevMaxFrames = this.maxFrames;
         TestScheduler.frameTimeFactor = 1;
         this.maxFrames = Number.POSITIVE_INFINITY;
         this.runMode = true;
         AsyncScheduler.delegate = this;
-        var helpers = {
+        const helpers = {
             cold: this.createColdObservable.bind(this),
             hot: this.createHotObservable.bind(this),
             flush: this.flush.bind(this),
@@ -342,7 +307,7 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
             expectSubscriptions: this.expectSubscriptions.bind(this),
         };
         try {
-            var ret = callback(helpers);
+            const ret = callback(helpers);
             this.flush();
             return ret;
         }
@@ -352,8 +317,6 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
             this.runMode = false;
             AsyncScheduler.delegate = undefined;
         }
-    };
-    return TestScheduler;
-}(VirtualTimeScheduler));
-export { TestScheduler };
+    }
+}
 //# sourceMappingURL=TestScheduler.js.map

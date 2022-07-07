@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START _Observable,_Subscription,_symbol_iterator PURE_IMPORTS_END */
 import { Observable } from '../Observable';
 import { Subscription } from '../Subscription';
 import { iterator as Symbol_iterator } from '../symbol/iterator';
@@ -6,24 +5,24 @@ export function scheduleIterable(input, scheduler) {
     if (!input) {
         throw new Error('Iterable cannot be null');
     }
-    return new Observable(function (subscriber) {
-        var sub = new Subscription();
-        var iterator;
-        sub.add(function () {
+    return new Observable(subscriber => {
+        const sub = new Subscription();
+        let iterator;
+        sub.add(() => {
             if (iterator && typeof iterator.return === 'function') {
                 iterator.return();
             }
         });
-        sub.add(scheduler.schedule(function () {
+        sub.add(scheduler.schedule(() => {
             iterator = input[Symbol_iterator]();
             sub.add(scheduler.schedule(function () {
                 if (subscriber.closed) {
                     return;
                 }
-                var value;
-                var done;
+                let value;
+                let done;
                 try {
-                    var result = iterator.next();
+                    const result = iterator.next();
                     value = result.value;
                     done = result.done;
                 }

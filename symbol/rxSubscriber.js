@@ -1,8 +1,5 @@
-/** PURE_IMPORTS_START  PURE_IMPORTS_END */
-export var rxSubscriber = /*@__PURE__*/ (function () {
-    return typeof Symbol === 'function'
-        ? /*@__PURE__*/ Symbol('rxSubscriber')
-        : '@@rxSubscriber_' + /*@__PURE__*/ Math.random();
-})();
-export var $$rxSubscriber = rxSubscriber;
+export const rxSubscriber = (() => typeof Symbol === 'function'
+    ? Symbol('rxSubscriber')
+    : '@@rxSubscriber_' + Math.random())();
+export const $$rxSubscriber = rxSubscriber;
 //# sourceMappingURL=rxSubscriber.js.map
