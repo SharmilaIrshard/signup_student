@@ -1,73 +1,167 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Core
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> Shared utilities for Angular DevKit.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Exception
 
-## Description
+# Json
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Schema
 
-## Installation
+### SchemaValidatorResult
 
-```bash
-$ npm install
+```
+export interface SchemaValidatorResult {
+  success: boolean;
+  errors?: string[];
+}
 ```
 
-## Running the app
+### SchemaValidator
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+export interface SchemaValidator {
+  (data: any): Observable<SchemaValidatorResult>;
+}
 ```
 
-## Test
+### SchemaFormatter
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```
+export interface SchemaFormatter {
+  readonly async: boolean;
+  validate(data: any): boolean | Observable<boolean>;
+}
 ```
 
-## Support
+### SchemaRegistry
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```
+export interface SchemaRegistry {
+  compile(schema: Object): Observable<SchemaValidator>;
+  addFormat(name: string, formatter: SchemaFormatter): void;
+}
+```
 
-## Stay in touch
+### CoreSchemaRegistry
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+`SchemaRegistry` implementation using https://github.com/epoberezkin/ajv.
+Constructor accepts object containing `SchemaFormatter` that will be added automatically.
 
-## License
+```
+export class CoreSchemaRegistry implements SchemaRegistry {
+  constructor(formats: { [name: string]: SchemaFormatter} = {}) {}
+}
+```
 
-Nest is [MIT licensed](LICENSE).
+# Logger
+
+# Utils
+
+# Virtual FS
+
+# Workspaces
+
+The `workspaces` namespace provides an API for interacting with the workspace file formats.
+It provides an abstraction of the underlying storage format of the workspace and provides
+support for both reading and writing. Currently, the only supported format is the JSON-based
+format used by the Angular CLI. For this format, the API provides internal change tracking of values which
+enables fine-grained updates to the underlying storage of the workspace. This allows for the
+retention of existing formatting and comments.
+
+A workspace is defined via the following object model. Definition collection objects are specialized
+Javascript `Map` objects with an additional `add` method to simplify addition and provide more localized
+error checking of the newly added values.
+
+```ts
+export interface WorkspaceDefinition {
+  readonly extensions: Record<string, JsonValue | undefined>;
+  readonly projects: ProjectDefinitionCollection;
+}
+
+export interface ProjectDefinition {
+  readonly extensions: Record<string, JsonValue | undefined>;
+  readonly targets: TargetDefinitionCollection;
+  root: string;
+  prefix?: string;
+  sourceRoot?: string;
+}
+
+export interface TargetDefinition {
+  options?: Record<string, JsonValue | undefined>;
+  configurations?: Record<string, Record<string, JsonValue | undefined> | undefined>;
+  builder: string;
+}
+```
+
+The API is asynchronous and has two main functions to facilitate reading, creation, and modifying
+a workspace: `readWorkspace` and `writeWorkspace`.
+
+```ts
+export enum WorkspaceFormat {
+  JSON,
+}
+```
+
+```ts
+export function readWorkspace(
+  path: string,
+  host: WorkspaceHost,
+  format?: WorkspaceFormat,
+): Promise<{ workspace: WorkspaceDefinition }>;
+```
+
+```ts
+export function writeWorkspace(
+  workspace: WorkspaceDefinition,
+  host: WorkspaceHost,
+  path?: string,
+  format?: WorkspaceFormat,
+): Promise<void>;
+```
+
+A `WorkspaceHost` abstracts the underlying data access methods from the functions. It provides
+methods to read, write, and analyze paths. A utility function is provided to create
+an instance of a `WorkspaceHost` from the Angular DevKit's virtual filesystem host abstraction.
+
+```ts
+export interface WorkspaceHost {
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, data: string): Promise<void>;
+  isDirectory(path: string): Promise<boolean>;
+  isFile(path: string): Promise<boolean>;
+}
+
+export function createWorkspaceHost(host: virtualFs.Host): WorkspaceHost;
+```
+
+## Usage Example
+
+To demonstrate the usage of the API, the following code will show how to add a option property
+to a build target for an application.
+
+```ts
+import { NodeJsSyncHost } from '@angular-devkit/core/node';
+import { workspaces } from '@angular-devkit/core';
+
+async function demonstrate() {
+  const host = workspaces.createWorkspaceHost(new NodeJsSyncHost());
+  const { workspace } = await workspaces.readWorkspace('path/to/workspace/directory/', host);
+
+  const project = workspace.projects.get('my-app');
+  if (!project) {
+    throw new Error('my-app does not exist');
+  }
+
+  const buildTarget = project.targets.get('build');
+  if (!buildTarget) {
+    throw new Error('build target does not exist');
+  }
+
+  buildTarget.options.optimization = true;
+
+  await workspaces.writeWorkspace(workspace, host);
+}
+
+demonstrate();
+```
