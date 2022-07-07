@@ -1,5 +1,4 @@
-import { mergeAll } from './mergeAll';
-export function concatAll() {
-    return mergeAll(1);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/concatAll");
 //# sourceMappingURL=concatAll.js.map

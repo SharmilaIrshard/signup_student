@@ -1,5 +1,4 @@
-import { concatMap } from './concatMap';
-export function concatMapTo(innerObservable, resultSelector) {
-    return concatMap(() => innerObservable, resultSelector);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/concatMapTo");
 //# sourceMappingURL=concatMapTo.js.map

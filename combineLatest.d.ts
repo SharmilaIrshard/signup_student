@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/combineLatest';
+import 'rxjs-compat/add/operator/combineLatest';

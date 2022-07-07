@@ -1,5 +1,4 @@
-import { CombineLatestOperator } from '../observable/combineLatest';
-export function combineAll(project) {
-    return (source) => source.lift(new CombineLatestOperator(project));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/combineAll");
 //# sourceMappingURL=combineAll.js.map

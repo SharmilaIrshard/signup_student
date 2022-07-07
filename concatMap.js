@@ -1,5 +1,4 @@
-import { mergeMap } from './mergeMap';
-export function concatMap(project, resultSelector) {
-    return mergeMap(project, resultSelector, 1);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/concatMap");
 //# sourceMappingURL=concatMap.js.map

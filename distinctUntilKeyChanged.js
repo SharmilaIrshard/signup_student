@@ -1,6 +1,4 @@
-/** PURE_IMPORTS_START _distinctUntilChanged PURE_IMPORTS_END */
-import { distinctUntilChanged } from './distinctUntilChanged';
-export function distinctUntilKeyChanged(key, compare) {
-    return distinctUntilChanged(function (x, y) { return compare ? compare(x[key], y[key]) : x[key] === y[key]; });
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/distinctUntilKeyChanged");
 //# sourceMappingURL=distinctUntilKeyChanged.js.map

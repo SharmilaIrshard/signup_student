@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/concat';
+import 'rxjs-compat/add/operator/concat';
