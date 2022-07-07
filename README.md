@@ -1,167 +1,147 @@
-# Core
+# <img src="docs_app/assets/Rx_Logo_S.png" alt="RxJS Logo" width="86" height="86"> RxJS: Reactive Extensions For JavaScript
 
-> Shared utilities for Angular DevKit.
+[![CircleCI](https://circleci.com/gh/ReactiveX/rxjs/tree/6.x.svg?style=svg)](https://circleci.com/gh/ReactiveX/rxjs/tree/6.x)
+[![npm version](https://badge.fury.io/js/%40reactivex%2Frxjs.svg)](http://badge.fury.io/js/%40reactivex%2Frxjs)
+[![Join the chat at https://gitter.im/Reactive-Extensions/RxJS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Reactive-Extensions/RxJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-# Exception
+# RxJS 6 Stable
 
-# Json
+### MIGRATION AND RELEASE INFORMATION:
 
-## Schema
+Find out how to update to v6, **automatically update your TypeScript code**, and more!
 
-### SchemaValidatorResult
+- [Current home is MIGRATION.md](./docs_app/content/guide/v6/migration.md)
 
-```
-export interface SchemaValidatorResult {
-  success: boolean;
-  errors?: string[];
-}
-```
+### FOR V 5.X PLEASE GO TO [THE 5.0 BRANCH](https://github.com/ReactiveX/rxjs/tree/5.x)
 
-### SchemaValidator
+Reactive Extensions Library for JavaScript. This is a rewrite of [Reactive-Extensions/RxJS](https://github.com/Reactive-Extensions/RxJS) and is the latest production-ready version of RxJS. This rewrite is meant to have better performance, better modularity, better debuggable call stacks, while staying mostly backwards compatible, with some breaking changes that reduce the API surface.
 
-```
-export interface SchemaValidator {
-  (data: any): Observable<SchemaValidatorResult>;
-}
-```
+[Apache 2.0 License](LICENSE.txt)
 
-### SchemaFormatter
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contribution Guidelines](CONTRIBUTING.md)
+- [Maintainer Guidelines](doc_app/content/maintainer-guidelines.md)
+- [API Documentation](https://rxjs.dev/)
 
-```
-export interface SchemaFormatter {
-  readonly async: boolean;
-  validate(data: any): boolean | Observable<boolean>;
-}
-```
+## Versions In This Repository
 
-### SchemaRegistry
+- [master](https://github.com/ReactiveX/rxjs/commits/master) - This is all of the current, unreleased work, which is against v6 of RxJS right now
+- [stable](https://github.com/ReactiveX/rxjs/commits/stable) - This is the branch for the latest version you'd get if you do `npm install rxjs`
 
-```
-export interface SchemaRegistry {
-  compile(schema: Object): Observable<SchemaValidator>;
-  addFormat(name: string, formatter: SchemaFormatter): void;
-}
+## Important
+
+By contributing or commenting on issues in this repository, whether you've read them or not, you're agreeing to the [Contributor Code of Conduct](CODE_OF_CONDUCT.md). Much like traffic laws, ignorance doesn't grant you immunity.
+
+## Installation and Usage
+
+### ES6 via npm
+
+```sh
+npm install rxjs
 ```
 
-### CoreSchemaRegistry
-
-`SchemaRegistry` implementation using https://github.com/epoberezkin/ajv.
-Constructor accepts object containing `SchemaFormatter` that will be added automatically.
-
-```
-export class CoreSchemaRegistry implements SchemaRegistry {
-  constructor(formats: { [name: string]: SchemaFormatter} = {}) {}
-}
-```
-
-# Logger
-
-# Utils
-
-# Virtual FS
-
-# Workspaces
-
-The `workspaces` namespace provides an API for interacting with the workspace file formats.
-It provides an abstraction of the underlying storage format of the workspace and provides
-support for both reading and writing. Currently, the only supported format is the JSON-based
-format used by the Angular CLI. For this format, the API provides internal change tracking of values which
-enables fine-grained updates to the underlying storage of the workspace. This allows for the
-retention of existing formatting and comments.
-
-A workspace is defined via the following object model. Definition collection objects are specialized
-Javascript `Map` objects with an additional `add` method to simplify addition and provide more localized
-error checking of the newly added values.
+It's recommended to pull in the Observable creation methods you need directly from `'rxjs'` as shown below with `range`. And you can pull in any operator you need from one spot, under `'rxjs/operators'`.
 
 ```ts
-export interface WorkspaceDefinition {
-  readonly extensions: Record<string, JsonValue | undefined>;
-  readonly projects: ProjectDefinitionCollection;
-}
+import { range } from "rxjs";
+import { map, filter } from "rxjs/operators";
 
-export interface ProjectDefinition {
-  readonly extensions: Record<string, JsonValue | undefined>;
-  readonly targets: TargetDefinitionCollection;
-  root: string;
-  prefix?: string;
-  sourceRoot?: string;
-}
-
-export interface TargetDefinition {
-  options?: Record<string, JsonValue | undefined>;
-  configurations?: Record<string, Record<string, JsonValue | undefined> | undefined>;
-  builder: string;
-}
+range(1, 200)
+  .pipe(
+    filter(x => x % 2 === 1),
+    map(x => x + x)
+  )
+  .subscribe(x => console.log(x));
 ```
 
-The API is asynchronous and has two main functions to facilitate reading, creation, and modifying
-a workspace: `readWorkspace` and `writeWorkspace`.
+Here, we're using the built-in `pipe` method on Observables to combine operators. See [pipeable operators](https://github.com/ReactiveX/rxjs/blob/master/doc/pipeable-operators.md) for more information.
 
-```ts
-export enum WorkspaceFormat {
-  JSON,
-}
+### CommonJS via npm
+
+To install this library for CommonJS (CJS) usage, use the following command:
+
+```sh
+npm install rxjs
 ```
 
-```ts
-export function readWorkspace(
-  path: string,
-  host: WorkspaceHost,
-  format?: WorkspaceFormat,
-): Promise<{ workspace: WorkspaceDefinition }>;
+(Note: destructuring available in Node 8+)
+
+```js
+const { range } = require('rxjs');
+const { map, filter } = require('rxjs/operators');
+
+range(1, 200).pipe(
+  filter(x => x % 2 === 1),
+  map(x => x + x)
+).subscribe(x => console.log(x));
 ```
 
-```ts
-export function writeWorkspace(
-  workspace: WorkspaceDefinition,
-  host: WorkspaceHost,
-  path?: string,
-  format?: WorkspaceFormat,
-): Promise<void>;
+### CDN
+
+For CDN, you can use [unpkg](https://unpkg.com/):
+
+https://unpkg.com/rxjs/bundles/rxjs.umd.min.js
+
+The global namespace for rxjs is `rxjs`:
+
+```js
+const { range } = rxjs;
+const { map, filter } = rxjs.operators;
+
+range(1, 200)
+  .pipe(
+    filter(x => x % 2 === 1),
+    map(x => x + x)
+  )
+  .subscribe(x => console.log(x));
 ```
 
-A `WorkspaceHost` abstracts the underlying data access methods from the functions. It provides
-methods to read, write, and analyze paths. A utility function is provided to create
-an instance of a `WorkspaceHost` from the Angular DevKit's virtual filesystem host abstraction.
+## Goals
 
-```ts
-export interface WorkspaceHost {
-  readFile(path: string): Promise<string>;
-  writeFile(path: string, data: string): Promise<void>;
-  isDirectory(path: string): Promise<boolean>;
-  isFile(path: string): Promise<boolean>;
-}
+- Smaller overall bundles sizes
+- Provide better performance than preceding versions of RxJS
+- To model/follow the [Observable Spec Proposal](https://github.com/zenparsing/es-observable) to the observable
+- Provide more modular file structure in a variety of formats
+- Provide more debuggable call stacks than preceding versions of RxJS
 
-export function createWorkspaceHost(host: virtualFs.Host): WorkspaceHost;
-```
+## Building/Testing
 
-## Usage Example
+- `npm run build_all` - builds everything
+- `npm test` - runs tests
+- `npm run test_no_cache` - run test with `ts-node` set to false
 
-To demonstrate the usage of the API, the following code will show how to add a option property
-to a build target for an application.
+## Performance Tests
 
-```ts
-import { NodeJsSyncHost } from '@angular-devkit/core/node';
-import { workspaces } from '@angular-devkit/core';
+Run `npm run build_perf` or `npm run perf` to run the performance tests with `protractor`.
 
-async function demonstrate() {
-  const host = workspaces.createWorkspaceHost(new NodeJsSyncHost());
-  const { workspace } = await workspaces.readWorkspace('path/to/workspace/directory/', host);
+Run `npm run perf_micro [operator]` to run micro performance test benchmarking operator.
 
-  const project = workspace.projects.get('my-app');
-  if (!project) {
-    throw new Error('my-app does not exist');
-  }
+## Adding documentation
 
-  const buildTarget = project.targets.get('build');
-  if (!buildTarget) {
-    throw new Error('build target does not exist');
-  }
+We appreciate all contributions to the documentation of any type. All of the information needed to get the docs app up and running locally as well as how to contribute can be found in the [documentation directory](./docs_app).
 
-  buildTarget.options.optimization = true;
+## Generating PNG marble diagrams
 
-  await workspaces.writeWorkspace(workspace, host);
-}
+The script `npm run tests2png` requires some native packages installed locally: `imagemagick`, `graphicsmagick`, and `ghostscript`.
 
-demonstrate();
-```
+For Mac OS X with [Homebrew](http://brew.sh/):
+
+- `brew install imagemagick`
+- `brew install graphicsmagick`
+- `brew install ghostscript`
+- You may need to install the Ghostscript fonts manually:
+  - Download the tarball from the [gs-fonts project](https://sourceforge.net/projects/gs-fonts)
+  - `mkdir -p /usr/local/share/ghostscript && tar zxvf /path/to/ghostscript-fonts.tar.gz -C /usr/local/share/ghostscript`
+
+For Debian Linux:
+
+- `sudo add-apt-repository ppa:dhor/myway`
+- `apt-get install imagemagick`
+- `apt-get install graphicsmagick`
+- `apt-get install ghostscript`
+
+For Windows and other Operating Systems, check the download instructions here:
+
+- http://imagemagick.org
+- http://www.graphicsmagick.org
+- http://www.ghostscript.com/
