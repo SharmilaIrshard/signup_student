@@ -1,9 +1,4 @@
-import { not } from '../util/not';
-import { filter } from './filter';
-export function partition(predicate, thisArg) {
-    return (source) => [
-        filter(predicate, thisArg)(source),
-        filter(not(predicate, thisArg))(source)
-    ];
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/partition");
 //# sourceMappingURL=partition.js.map

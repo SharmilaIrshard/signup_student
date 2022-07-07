@@ -1,5 +1,4 @@
-import { FindValueOperator } from '../operators/find';
-export function findIndex(predicate, thisArg) {
-    return (source) => source.lift(new FindValueOperator(predicate, source, true, thisArg));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/findIndex");
 //# sourceMappingURL=findIndex.js.map

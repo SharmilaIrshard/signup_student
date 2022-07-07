@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/merge';
+import 'rxjs-compat/add/operator/merge';

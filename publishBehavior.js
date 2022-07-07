@@ -1,6 +1,4 @@
-import { BehaviorSubject } from '../BehaviorSubject';
-import { multicast } from './multicast';
-export function publishBehavior(value) {
-    return (source) => multicast(new BehaviorSubject(value))(source);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/publishBehavior");
 //# sourceMappingURL=publishBehavior.js.map

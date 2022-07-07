@@ -1,11 +1,4 @@
-import { mergeMap } from './mergeMap';
-export function mergeMapTo(innerObservable, resultSelector, concurrent = Number.POSITIVE_INFINITY) {
-    if (typeof resultSelector === 'function') {
-        return mergeMap(() => innerObservable, resultSelector, concurrent);
-    }
-    if (typeof resultSelector === 'number') {
-        concurrent = resultSelector;
-    }
-    return mergeMap(() => innerObservable, concurrent);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/mergeMapTo");
 //# sourceMappingURL=mergeMapTo.js.map

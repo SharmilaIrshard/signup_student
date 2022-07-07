@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/race';
+import 'rxjs-compat/add/operator/race';

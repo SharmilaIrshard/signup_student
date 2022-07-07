@@ -1,11 +1,4 @@
-import { EmptyError } from '../util/EmptyError';
-import { filter } from './filter';
-import { takeLast } from './takeLast';
-import { throwIfEmpty } from './throwIfEmpty';
-import { defaultIfEmpty } from './defaultIfEmpty';
-import { identity } from '../util/identity';
-export function last(predicate, defaultValue) {
-    const hasDefaultValue = arguments.length >= 2;
-    return (source) => source.pipe(predicate ? filter((v, i) => predicate(v, i, source)) : identity, takeLast(1), hasDefaultValue ? defaultIfEmpty(defaultValue) : throwIfEmpty(() => new EmptyError()));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/last");
 //# sourceMappingURL=last.js.map

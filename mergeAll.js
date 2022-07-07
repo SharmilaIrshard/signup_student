@@ -1,6 +1,4 @@
-import { mergeMap } from './mergeMap';
-import { identity } from '../util/identity';
-export function mergeAll(concurrent = Number.POSITIVE_INFINITY) {
-    return mergeMap(identity, concurrent);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/mergeAll");
 //# sourceMappingURL=mergeAll.js.map

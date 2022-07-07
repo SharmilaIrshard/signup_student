@@ -1,8 +1,4 @@
-import { reduce } from './reduce';
-export function min(comparer) {
-    const min = (typeof comparer === 'function')
-        ? (x, y) => comparer(x, y) < 0 ? x : y
-        : (x, y) => x < y ? x : y;
-    return reduce(min);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/min");
 //# sourceMappingURL=min.js.map

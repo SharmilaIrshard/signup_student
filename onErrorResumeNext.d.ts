@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/onErrorResumeNext';
+import 'rxjs-compat/add/operator/onErrorResumeNext';
