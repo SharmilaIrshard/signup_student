@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START  PURE_IMPORTS_END */
 export { config } from '../internal/config';
 export { InnerSubscriber } from '../internal/InnerSubscriber';
 export { OuterSubscriber } from '../internal/OuterSubscriber';

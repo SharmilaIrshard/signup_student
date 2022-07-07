@@ -1,6 +1,4 @@
-/** PURE_IMPORTS_START _WebSocketSubject PURE_IMPORTS_END */
-import { WebSocketSubject } from './WebSocketSubject';
-export function webSocket(urlConfigOrSource) {
-    return new WebSocketSubject(urlConfigOrSource);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/observable/dom/webSocket");
 //# sourceMappingURL=webSocket.js.map

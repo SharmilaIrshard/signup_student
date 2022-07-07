@@ -1,4 +1,4 @@
-/** PURE_IMPORTS_START _AjaxObservable PURE_IMPORTS_END */
-import { AjaxObservable } from './AjaxObservable';
-export var ajax = /*@__PURE__*/ (function () { return AjaxObservable.create; })();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/observable/dom/ajax");
 //# sourceMappingURL=ajax.js.map
