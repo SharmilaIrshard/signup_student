@@ -1,13 +1,4 @@
-import { concat } from '../observable/concat';
-import { isScheduler } from '../util/isScheduler';
-export function startWith(...array) {
-    const scheduler = array[array.length - 1];
-    if (isScheduler(scheduler)) {
-        array.pop();
-        return (source) => concat(array, source, scheduler);
-    }
-    else {
-        return (source) => concat(array, source);
-    }
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/startWith");
 //# sourceMappingURL=startWith.js.map

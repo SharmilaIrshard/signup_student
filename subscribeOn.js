@@ -1,16 +1,4 @@
-import { SubscribeOnObservable } from '../observable/SubscribeOnObservable';
-export function subscribeOn(scheduler, delay = 0) {
-    return function subscribeOnOperatorFunction(source) {
-        return source.lift(new SubscribeOnOperator(scheduler, delay));
-    };
-}
-class SubscribeOnOperator {
-    constructor(scheduler, delay) {
-        this.scheduler = scheduler;
-        this.delay = delay;
-    }
-    call(subscriber, source) {
-        return new SubscribeOnObservable(source, this.delay, this.scheduler).subscribe(subscriber);
-    }
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/subscribeOn");
 //# sourceMappingURL=subscribeOn.js.map

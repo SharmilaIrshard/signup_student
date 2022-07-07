@@ -1,5 +1,4 @@
-import { switchMap } from './switchMap';
-export function switchMapTo(innerObservable, resultSelector) {
-    return resultSelector ? switchMap(() => innerObservable, resultSelector) : switchMap(() => innerObservable);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/switchMapTo");
 //# sourceMappingURL=switchMapTo.js.map

@@ -1,5 +1,4 @@
-import { ZipOperator } from '../observable/zip';
-export function zipAll(project) {
-    return (source) => source.lift(new ZipOperator(project));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/zipAll");
 //# sourceMappingURL=zipAll.js.map
