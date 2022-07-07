@@ -1,42 +1,31 @@
-/** PURE_IMPORTS_START tslib,_Subscriber,_scheduler_async,_throttle PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 import { async } from '../scheduler/async';
 import { defaultThrottleConfig } from './throttle';
-export function throttleTime(duration, scheduler, config) {
-    if (scheduler === void 0) {
-        scheduler = async;
-    }
-    if (config === void 0) {
-        config = defaultThrottleConfig;
-    }
-    return function (source) { return source.lift(new ThrottleTimeOperator(duration, scheduler, config.leading, config.trailing)); };
+export function throttleTime(duration, scheduler = async, config = defaultThrottleConfig) {
+    return (source) => source.lift(new ThrottleTimeOperator(duration, scheduler, config.leading, config.trailing));
 }
-var ThrottleTimeOperator = /*@__PURE__*/ (function () {
-    function ThrottleTimeOperator(duration, scheduler, leading, trailing) {
+class ThrottleTimeOperator {
+    constructor(duration, scheduler, leading, trailing) {
         this.duration = duration;
         this.scheduler = scheduler;
         this.leading = leading;
         this.trailing = trailing;
     }
-    ThrottleTimeOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new ThrottleTimeSubscriber(subscriber, this.duration, this.scheduler, this.leading, this.trailing));
-    };
-    return ThrottleTimeOperator;
-}());
-var ThrottleTimeSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(ThrottleTimeSubscriber, _super);
-    function ThrottleTimeSubscriber(destination, duration, scheduler, leading, trailing) {
-        var _this = _super.call(this, destination) || this;
-        _this.duration = duration;
-        _this.scheduler = scheduler;
-        _this.leading = leading;
-        _this.trailing = trailing;
-        _this._hasTrailingValue = false;
-        _this._trailingValue = null;
-        return _this;
     }
-    ThrottleTimeSubscriber.prototype._next = function (value) {
+}
+class ThrottleTimeSubscriber extends Subscriber {
+    constructor(destination, duration, scheduler, leading, trailing) {
+        super(destination);
+        this.duration = duration;
+        this.scheduler = scheduler;
+        this.leading = leading;
+        this.trailing = trailing;
+        this._hasTrailingValue = false;
+        this._trailingValue = null;
+    }
+    _next(value) {
         if (this.throttled) {
             if (this.trailing) {
                 this._trailingValue = value;
@@ -53,8 +42,8 @@ var ThrottleTimeSubscriber = /*@__PURE__*/ (function (_super) {
                 this._hasTrailingValue = true;
             }
         }
-    };
-    ThrottleTimeSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         if (this._hasTrailingValue) {
             this.destination.next(this._trailingValue);
             this.destination.complete();
@@ -62,9 +51,9 @@ var ThrottleTimeSubscriber = /*@__PURE__*/ (function (_super) {
         else {
             this.destination.complete();
         }
-    };
-    ThrottleTimeSubscriber.prototype.clearThrottle = function () {
-        var throttled = this.throttled;
+    }
+    clearThrottle() {
+        const throttled = this.throttled;
         if (throttled) {
             if (this.trailing && this._hasTrailingValue) {
                 this.destination.next(this._trailingValue);
@@ -75,11 +64,10 @@ var ThrottleTimeSubscriber = /*@__PURE__*/ (function (_super) {
             this.remove(throttled);
             this.throttled = null;
         }
-    };
-    return ThrottleTimeSubscriber;
-}(Subscriber));
+    }
+}
 function dispatchNext(arg) {
-    var subscriber = arg.subscriber;
+    const { subscriber } = arg;
     subscriber.clearThrottle();
 }
 //# sourceMappingURL=throttleTime.js.map

@@ -1,21 +1,16 @@
-/** PURE_IMPORTS_START _observable_SubscribeOnObservable PURE_IMPORTS_END */
 import { SubscribeOnObservable } from '../observable/SubscribeOnObservable';
-export function subscribeOn(scheduler, delay) {
-    if (delay === void 0) {
-        delay = 0;
-    }
+export function subscribeOn(scheduler, delay = 0) {
     return function subscribeOnOperatorFunction(source) {
         return source.lift(new SubscribeOnOperator(scheduler, delay));
     };
 }
-var SubscribeOnOperator = /*@__PURE__*/ (function () {
-    function SubscribeOnOperator(scheduler, delay) {
+class SubscribeOnOperator {
+    constructor(scheduler, delay) {
         this.scheduler = scheduler;
         this.delay = delay;
     }
-    SubscribeOnOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return new SubscribeOnObservable(source, this.delay, this.scheduler).subscribe(subscriber);
-    };
-    return SubscribeOnOperator;
-}());
+    }
+}
 //# sourceMappingURL=subscribeOn.js.map

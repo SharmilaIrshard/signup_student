@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Subject,_OuterSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subject } from '../Subject';
 import { OuterSubscriber } from '../OuterSubscriber';
 import { subscribeToResult } from '../util/subscribeToResult';
@@ -8,68 +6,62 @@ export function windowWhen(closingSelector) {
         return source.lift(new WindowOperator(closingSelector));
     };
 }
-var WindowOperator = /*@__PURE__*/ (function () {
-    function WindowOperator(closingSelector) {
+class WindowOperator {
+    constructor(closingSelector) {
         this.closingSelector = closingSelector;
     }
-    WindowOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new WindowSubscriber(subscriber, this.closingSelector));
-    };
-    return WindowOperator;
-}());
-var WindowSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(WindowSubscriber, _super);
-    function WindowSubscriber(destination, closingSelector) {
-        var _this = _super.call(this, destination) || this;
-        _this.destination = destination;
-        _this.closingSelector = closingSelector;
-        _this.openWindow();
-        return _this;
     }
-    WindowSubscriber.prototype.notifyNext = function (_outerValue, _innerValue, _outerIndex, _innerIndex, innerSub) {
+}
+class WindowSubscriber extends OuterSubscriber {
+    constructor(destination, closingSelector) {
+        super(destination);
+        this.destination = destination;
+        this.closingSelector = closingSelector;
+        this.openWindow();
+    }
+    notifyNext(_outerValue, _innerValue, _outerIndex, _innerIndex, innerSub) {
         this.openWindow(innerSub);
-    };
-    WindowSubscriber.prototype.notifyError = function (error) {
+    }
+    notifyError(error) {
         this._error(error);
-    };
-    WindowSubscriber.prototype.notifyComplete = function (innerSub) {
+    }
+    notifyComplete(innerSub) {
         this.openWindow(innerSub);
-    };
-    WindowSubscriber.prototype._next = function (value) {
+    }
+    _next(value) {
         this.window.next(value);
-    };
-    WindowSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.window.error(err);
         this.destination.error(err);
         this.unsubscribeClosingNotification();
-    };
-    WindowSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.window.complete();
         this.destination.complete();
         this.unsubscribeClosingNotification();
-    };
-    WindowSubscriber.prototype.unsubscribeClosingNotification = function () {
+    }
+    unsubscribeClosingNotification() {
         if (this.closingNotification) {
             this.closingNotification.unsubscribe();
         }
-    };
-    WindowSubscriber.prototype.openWindow = function (innerSub) {
-        if (innerSub === void 0) {
-            innerSub = null;
-        }
+    }
+    openWindow(innerSub = null) {
         if (innerSub) {
             this.remove(innerSub);
             innerSub.unsubscribe();
         }
-        var prevWindow = this.window;
+        const prevWindow = this.window;
         if (prevWindow) {
             prevWindow.complete();
         }
-        var window = this.window = new Subject();
+        const window = this.window = new Subject();
         this.destination.next(window);
-        var closingNotifier;
+        let closingNotifier;
         try {
-            var closingSelector = this.closingSelector;
+            const { closingSelector } = this;
             closingNotifier = closingSelector();
         }
         catch (e) {
@@ -78,7 +70,6 @@ var WindowSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         this.add(this.closingNotification = subscribeToResult(this, closingNotifier));
-    };
-    return WindowSubscriber;
-}(OuterSubscriber));
+    }
+}
 //# sourceMappingURL=windowWhen.js.map

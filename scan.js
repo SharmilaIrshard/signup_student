@@ -1,8 +1,6 @@
-/** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 export function scan(accumulator, seed) {
-    var hasSeed = false;
+    let hasSeed = false;
     if (arguments.length >= 2) {
         hasSeed = true;
     }
@@ -10,42 +8,32 @@ export function scan(accumulator, seed) {
         return source.lift(new ScanOperator(accumulator, seed, hasSeed));
     };
 }
-var ScanOperator = /*@__PURE__*/ (function () {
-    function ScanOperator(accumulator, seed, hasSeed) {
-        if (hasSeed === void 0) {
-            hasSeed = false;
-        }
+class ScanOperator {
+    constructor(accumulator, seed, hasSeed = false) {
         this.accumulator = accumulator;
         this.seed = seed;
         this.hasSeed = hasSeed;
     }
-    ScanOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new ScanSubscriber(subscriber, this.accumulator, this.seed, this.hasSeed));
-    };
-    return ScanOperator;
-}());
-var ScanSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(ScanSubscriber, _super);
-    function ScanSubscriber(destination, accumulator, _seed, hasSeed) {
-        var _this = _super.call(this, destination) || this;
-        _this.accumulator = accumulator;
-        _this._seed = _seed;
-        _this.hasSeed = hasSeed;
-        _this.index = 0;
-        return _this;
     }
-    Object.defineProperty(ScanSubscriber.prototype, "seed", {
-        get: function () {
-            return this._seed;
-        },
-        set: function (value) {
-            this.hasSeed = true;
-            this._seed = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ScanSubscriber.prototype._next = function (value) {
+}
+class ScanSubscriber extends Subscriber {
+    constructor(destination, accumulator, _seed, hasSeed) {
+        super(destination);
+        this.accumulator = accumulator;
+        this._seed = _seed;
+        this.hasSeed = hasSeed;
+        this.index = 0;
+    }
+    get seed() {
+        return this._seed;
+    }
+    set seed(value) {
+        this.hasSeed = true;
+        this._seed = value;
+    }
+    _next(value) {
         if (!this.hasSeed) {
             this.seed = value;
             this.destination.next(value);
@@ -53,10 +41,10 @@ var ScanSubscriber = /*@__PURE__*/ (function (_super) {
         else {
             return this._tryNext(value);
         }
-    };
-    ScanSubscriber.prototype._tryNext = function (value) {
-        var index = this.index++;
-        var result;
+    }
+    _tryNext(value) {
+        const index = this.index++;
+        let result;
         try {
             result = this.accumulator(this.seed, value, index);
         }
@@ -65,7 +53,6 @@ var ScanSubscriber = /*@__PURE__*/ (function (_super) {
         }
         this.seed = result;
         this.destination.next(result);
-    };
-    return ScanSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=scan.js.map

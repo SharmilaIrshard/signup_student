@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Subject,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subject } from '../Subject';
 import { SimpleOuterSubscriber, innerSubscribe, SimpleInnerSubscriber } from '../innerSubscribe';
 export function window(windowBoundaries) {
@@ -7,60 +5,56 @@ export function window(windowBoundaries) {
         return source.lift(new WindowOperator(windowBoundaries));
     };
 }
-var WindowOperator = /*@__PURE__*/ (function () {
-    function WindowOperator(windowBoundaries) {
+class WindowOperator {
+    constructor(windowBoundaries) {
         this.windowBoundaries = windowBoundaries;
     }
-    WindowOperator.prototype.call = function (subscriber, source) {
-        var windowSubscriber = new WindowSubscriber(subscriber);
-        var sourceSubscription = source.subscribe(windowSubscriber);
+    call(subscriber, source) {
+        const windowSubscriber = new WindowSubscriber(subscriber);
+        const sourceSubscription = source.subscribe(windowSubscriber);
         if (!sourceSubscription.closed) {
             windowSubscriber.add(innerSubscribe(this.windowBoundaries, new SimpleInnerSubscriber(windowSubscriber)));
         }
         return sourceSubscription;
-    };
-    return WindowOperator;
-}());
-var WindowSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(WindowSubscriber, _super);
-    function WindowSubscriber(destination) {
-        var _this = _super.call(this, destination) || this;
-        _this.window = new Subject();
-        destination.next(_this.window);
-        return _this;
     }
-    WindowSubscriber.prototype.notifyNext = function () {
+}
+class WindowSubscriber extends SimpleOuterSubscriber {
+    constructor(destination) {
+        super(destination);
+        this.window = new Subject();
+        destination.next(this.window);
+    }
+    notifyNext() {
         this.openWindow();
-    };
-    WindowSubscriber.prototype.notifyError = function (error) {
+    }
+    notifyError(error) {
         this._error(error);
-    };
-    WindowSubscriber.prototype.notifyComplete = function () {
+    }
+    notifyComplete() {
         this._complete();
-    };
-    WindowSubscriber.prototype._next = function (value) {
+    }
+    _next(value) {
         this.window.next(value);
-    };
-    WindowSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.window.error(err);
         this.destination.error(err);
-    };
-    WindowSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.window.complete();
         this.destination.complete();
-    };
-    WindowSubscriber.prototype._unsubscribe = function () {
+    }
+    _unsubscribe() {
         this.window = null;
-    };
-    WindowSubscriber.prototype.openWindow = function () {
-        var prevWindow = this.window;
+    }
+    openWindow() {
+        const prevWindow = this.window;
         if (prevWindow) {
             prevWindow.complete();
         }
-        var destination = this.destination;
-        var newWindow = this.window = new Subject();
+        const destination = this.destination;
+        const newWindow = this.window = new Subject();
         destination.next(newWindow);
-    };
-    return WindowSubscriber;
-}(SimpleOuterSubscriber));
+    }
+}
 //# sourceMappingURL=window.js.map

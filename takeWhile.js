@@ -1,36 +1,26 @@
-/** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
-export function takeWhile(predicate, inclusive) {
-    if (inclusive === void 0) {
-        inclusive = false;
-    }
-    return function (source) {
-        return source.lift(new TakeWhileOperator(predicate, inclusive));
-    };
+export function takeWhile(predicate, inclusive = false) {
+    return (source) => source.lift(new TakeWhileOperator(predicate, inclusive));
 }
-var TakeWhileOperator = /*@__PURE__*/ (function () {
-    function TakeWhileOperator(predicate, inclusive) {
+class TakeWhileOperator {
+    constructor(predicate, inclusive) {
         this.predicate = predicate;
         this.inclusive = inclusive;
     }
-    TakeWhileOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new TakeWhileSubscriber(subscriber, this.predicate, this.inclusive));
-    };
-    return TakeWhileOperator;
-}());
-var TakeWhileSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(TakeWhileSubscriber, _super);
-    function TakeWhileSubscriber(destination, predicate, inclusive) {
-        var _this = _super.call(this, destination) || this;
-        _this.predicate = predicate;
-        _this.inclusive = inclusive;
-        _this.index = 0;
-        return _this;
     }
-    TakeWhileSubscriber.prototype._next = function (value) {
-        var destination = this.destination;
-        var result;
+}
+class TakeWhileSubscriber extends Subscriber {
+    constructor(destination, predicate, inclusive) {
+        super(destination);
+        this.predicate = predicate;
+        this.inclusive = inclusive;
+        this.index = 0;
+    }
+    _next(value) {
+        const destination = this.destination;
+        let result;
         try {
             result = this.predicate(value, this.index++);
         }
@@ -39,9 +29,9 @@ var TakeWhileSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         this.nextOrComplete(value, result);
-    };
-    TakeWhileSubscriber.prototype.nextOrComplete = function (value, predicateResult) {
-        var destination = this.destination;
+    }
+    nextOrComplete(value, predicateResult) {
+        const destination = this.destination;
         if (Boolean(predicateResult)) {
             destination.next(value);
         }
@@ -51,7 +41,6 @@ var TakeWhileSubscriber = /*@__PURE__*/ (function (_super) {
             }
             destination.complete();
         }
-    };
-    return TakeWhileSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=takeWhile.js.map

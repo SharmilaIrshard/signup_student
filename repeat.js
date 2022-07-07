@@ -1,12 +1,7 @@
-/** PURE_IMPORTS_START tslib,_Subscriber,_observable_empty PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 import { empty } from '../observable/empty';
-export function repeat(count) {
-    if (count === void 0) {
-        count = -1;
-    }
-    return function (source) {
+export function repeat(count = -1) {
+    return (source) => {
         if (count === 0) {
             return empty();
         }
@@ -18,36 +13,32 @@ export function repeat(count) {
         }
     };
 }
-var RepeatOperator = /*@__PURE__*/ (function () {
-    function RepeatOperator(count, source) {
+class RepeatOperator {
+    constructor(count, source) {
         this.count = count;
         this.source = source;
     }
-    RepeatOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new RepeatSubscriber(subscriber, this.count, this.source));
-    };
-    return RepeatOperator;
-}());
-var RepeatSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(RepeatSubscriber, _super);
-    function RepeatSubscriber(destination, count, source) {
-        var _this = _super.call(this, destination) || this;
-        _this.count = count;
-        _this.source = source;
-        return _this;
     }
-    RepeatSubscriber.prototype.complete = function () {
+}
+class RepeatSubscriber extends Subscriber {
+    constructor(destination, count, source) {
+        super(destination);
+        this.count = count;
+        this.source = source;
+    }
+    complete() {
         if (!this.isStopped) {
-            var _a = this, source = _a.source, count = _a.count;
+            const { source, count } = this;
             if (count === 0) {
-                return _super.prototype.complete.call(this);
+                return super.complete();
             }
             else if (count > -1) {
                 this.count = count - 1;
             }
             source.subscribe(this._unsubscribeAndRecycle());
         }
-    };
-    return RepeatSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=repeat.js.map

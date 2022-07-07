@@ -1,43 +1,41 @@
-/** PURE_IMPORTS_START _ReplaySubject PURE_IMPORTS_END */
 import { ReplaySubject } from '../ReplaySubject';
 export function shareReplay(configOrBufferSize, windowTime, scheduler) {
-    var config;
+    let config;
     if (configOrBufferSize && typeof configOrBufferSize === 'object') {
         config = configOrBufferSize;
     }
     else {
         config = {
             bufferSize: configOrBufferSize,
-            windowTime: windowTime,
+            windowTime,
             refCount: false,
-            scheduler: scheduler,
+            scheduler,
         };
     }
-    return function (source) { return source.lift(shareReplayOperator(config)); };
+    return (source) => source.lift(shareReplayOperator(config));
 }
-function shareReplayOperator(_a) {
-    var _b = _a.bufferSize, bufferSize = _b === void 0 ? Number.POSITIVE_INFINITY : _b, _c = _a.windowTime, windowTime = _c === void 0 ? Number.POSITIVE_INFINITY : _c, useRefCount = _a.refCount, scheduler = _a.scheduler;
-    var subject;
-    var refCount = 0;
-    var subscription;
-    var hasError = false;
-    var isComplete = false;
+function shareReplayOperator({ bufferSize = Number.POSITIVE_INFINITY, windowTime = Number.POSITIVE_INFINITY, refCount: useRefCount, scheduler, }) {
+    let subject;
+    let refCount = 0;
+    let subscription;
+    let hasError = false;
+    let isComplete = false;
     return function shareReplayOperation(source) {
         refCount++;
-        var innerSub;
+        let innerSub;
         if (!subject || hasError) {
             hasError = false;
             subject = new ReplaySubject(bufferSize, windowTime, scheduler);
             innerSub = subject.subscribe(this);
             subscription = source.subscribe({
-                next: function (value) {
+                next(value) {
                     subject.next(value);
                 },
-                error: function (err) {
+                error(err) {
                     hasError = true;
                     subject.error(err);
                 },
-                complete: function () {
+                complete() {
                     isComplete = true;
                     subscription = undefined;
                     subject.complete();
@@ -50,7 +48,7 @@ function shareReplayOperator(_a) {
         else {
             innerSub = subject.subscribe(this);
         }
-        this.add(function () {
+        this.add(() => {
             refCount--;
             innerSub.unsubscribe();
             innerSub = undefined;

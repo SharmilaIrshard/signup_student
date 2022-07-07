@@ -1,52 +1,47 @@
-/** PURE_IMPORTS_START tslib,_Subject,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subject } from '../Subject';
 import { SimpleOuterSubscriber, innerSubscribe, SimpleInnerSubscriber } from '../innerSubscribe';
 export function repeatWhen(notifier) {
-    return function (source) { return source.lift(new RepeatWhenOperator(notifier)); };
+    return (source) => source.lift(new RepeatWhenOperator(notifier));
 }
-var RepeatWhenOperator = /*@__PURE__*/ (function () {
-    function RepeatWhenOperator(notifier) {
+class RepeatWhenOperator {
+    constructor(notifier) {
         this.notifier = notifier;
     }
-    RepeatWhenOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new RepeatWhenSubscriber(subscriber, this.notifier, source));
-    };
-    return RepeatWhenOperator;
-}());
-var RepeatWhenSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(RepeatWhenSubscriber, _super);
-    function RepeatWhenSubscriber(destination, notifier, source) {
-        var _this = _super.call(this, destination) || this;
-        _this.notifier = notifier;
-        _this.source = source;
-        _this.sourceIsBeingSubscribedTo = true;
-        return _this;
     }
-    RepeatWhenSubscriber.prototype.notifyNext = function () {
+}
+class RepeatWhenSubscriber extends SimpleOuterSubscriber {
+    constructor(destination, notifier, source) {
+        super(destination);
+        this.notifier = notifier;
+        this.source = source;
+        this.sourceIsBeingSubscribedTo = true;
+    }
+    notifyNext() {
         this.sourceIsBeingSubscribedTo = true;
         this.source.subscribe(this);
-    };
-    RepeatWhenSubscriber.prototype.notifyComplete = function () {
+    }
+    notifyComplete() {
         if (this.sourceIsBeingSubscribedTo === false) {
-            return _super.prototype.complete.call(this);
+            return super.complete();
         }
-    };
-    RepeatWhenSubscriber.prototype.complete = function () {
+    }
+    complete() {
         this.sourceIsBeingSubscribedTo = false;
         if (!this.isStopped) {
             if (!this.retries) {
                 this.subscribeToRetries();
             }
             if (!this.retriesSubscription || this.retriesSubscription.closed) {
-                return _super.prototype.complete.call(this);
+                return super.complete();
             }
             this._unsubscribeAndRecycle();
             this.notifications.next(undefined);
         }
-    };
-    RepeatWhenSubscriber.prototype._unsubscribe = function () {
-        var _a = this, notifications = _a.notifications, retriesSubscription = _a.retriesSubscription;
+    }
+    _unsubscribe() {
+        const { notifications, retriesSubscription } = this;
         if (notifications) {
             notifications.unsubscribe();
             this.notifications = undefined;
@@ -56,27 +51,26 @@ var RepeatWhenSubscriber = /*@__PURE__*/ (function (_super) {
             this.retriesSubscription = undefined;
         }
         this.retries = undefined;
-    };
-    RepeatWhenSubscriber.prototype._unsubscribeAndRecycle = function () {
-        var _unsubscribe = this._unsubscribe;
+    }
+    _unsubscribeAndRecycle() {
+        const { _unsubscribe } = this;
         this._unsubscribe = null;
-        _super.prototype._unsubscribeAndRecycle.call(this);
+        super._unsubscribeAndRecycle();
         this._unsubscribe = _unsubscribe;
         return this;
-    };
-    RepeatWhenSubscriber.prototype.subscribeToRetries = function () {
+    }
+    subscribeToRetries() {
         this.notifications = new Subject();
-        var retries;
+        let retries;
         try {
-            var notifier = this.notifier;
+            const { notifier } = this;
             retries = notifier(this.notifications);
         }
         catch (e) {
-            return _super.prototype.complete.call(this);
+            return super.complete();
         }
         this.retries = retries;
         this.retriesSubscription = innerSubscribe(retries, new SimpleInnerSubscriber(this));
-    };
-    return RepeatWhenSubscriber;
-}(SimpleOuterSubscriber));
+    }
+}
 //# sourceMappingURL=repeatWhen.js.map

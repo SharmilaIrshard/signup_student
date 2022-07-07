@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Subscriber,_util_noop,_util_isFunction PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 import { noop } from '../util/noop';
 import { isFunction } from '../util/isFunction';
@@ -8,39 +6,36 @@ export function tap(nextOrObserver, error, complete) {
         return source.lift(new DoOperator(nextOrObserver, error, complete));
     };
 }
-var DoOperator = /*@__PURE__*/ (function () {
-    function DoOperator(nextOrObserver, error, complete) {
+class DoOperator {
+    constructor(nextOrObserver, error, complete) {
         this.nextOrObserver = nextOrObserver;
         this.error = error;
         this.complete = complete;
     }
-    DoOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new TapSubscriber(subscriber, this.nextOrObserver, this.error, this.complete));
-    };
-    return DoOperator;
-}());
-var TapSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(TapSubscriber, _super);
-    function TapSubscriber(destination, observerOrNext, error, complete) {
-        var _this = _super.call(this, destination) || this;
-        _this._tapNext = noop;
-        _this._tapError = noop;
-        _this._tapComplete = noop;
-        _this._tapError = error || noop;
-        _this._tapComplete = complete || noop;
+    }
+}
+class TapSubscriber extends Subscriber {
+    constructor(destination, observerOrNext, error, complete) {
+        super(destination);
+        this._tapNext = noop;
+        this._tapError = noop;
+        this._tapComplete = noop;
+        this._tapError = error || noop;
+        this._tapComplete = complete || noop;
         if (isFunction(observerOrNext)) {
-            _this._context = _this;
-            _this._tapNext = observerOrNext;
+            this._context = this;
+            this._tapNext = observerOrNext;
         }
         else if (observerOrNext) {
-            _this._context = observerOrNext;
-            _this._tapNext = observerOrNext.next || noop;
-            _this._tapError = observerOrNext.error || noop;
-            _this._tapComplete = observerOrNext.complete || noop;
+            this._context = observerOrNext;
+            this._tapNext = observerOrNext.next || noop;
+            this._tapError = observerOrNext.error || noop;
+            this._tapComplete = observerOrNext.complete || noop;
         }
-        return _this;
     }
-    TapSubscriber.prototype._next = function (value) {
+    _next(value) {
         try {
             this._tapNext.call(this._context, value);
         }
@@ -49,8 +44,8 @@ var TapSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         this.destination.next(value);
-    };
-    TapSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         try {
             this._tapError.call(this._context, err);
         }
@@ -59,8 +54,8 @@ var TapSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         this.destination.error(err);
-    };
-    TapSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         try {
             this._tapComplete.call(this._context);
         }
@@ -69,7 +64,6 @@ var TapSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         return this.destination.complete();
-    };
-    return TapSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=tap.js.map

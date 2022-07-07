@@ -1,33 +1,27 @@
-/** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 export function sequenceEqual(compareTo, comparator) {
-    return function (source) { return source.lift(new SequenceEqualOperator(compareTo, comparator)); };
+    return (source) => source.lift(new SequenceEqualOperator(compareTo, comparator));
 }
-var SequenceEqualOperator = /*@__PURE__*/ (function () {
-    function SequenceEqualOperator(compareTo, comparator) {
+export class SequenceEqualOperator {
+    constructor(compareTo, comparator) {
         this.compareTo = compareTo;
         this.comparator = comparator;
     }
-    SequenceEqualOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new SequenceEqualSubscriber(subscriber, this.compareTo, this.comparator));
-    };
-    return SequenceEqualOperator;
-}());
-export { SequenceEqualOperator };
-var SequenceEqualSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(SequenceEqualSubscriber, _super);
-    function SequenceEqualSubscriber(destination, compareTo, comparator) {
-        var _this = _super.call(this, destination) || this;
-        _this.compareTo = compareTo;
-        _this.comparator = comparator;
-        _this._a = [];
-        _this._b = [];
-        _this._oneComplete = false;
-        _this.destination.add(compareTo.subscribe(new SequenceEqualCompareToSubscriber(destination, _this)));
-        return _this;
     }
-    SequenceEqualSubscriber.prototype._next = function (value) {
+}
+export class SequenceEqualSubscriber extends Subscriber {
+    constructor(destination, compareTo, comparator) {
+        super(destination);
+        this.compareTo = compareTo;
+        this.comparator = comparator;
+        this._a = [];
+        this._b = [];
+        this._oneComplete = false;
+        this.destination.add(compareTo.subscribe(new SequenceEqualCompareToSubscriber(destination, this)));
+    }
+    _next(value) {
         if (this._oneComplete && this._b.length === 0) {
             this.emit(false);
         }
@@ -35,8 +29,8 @@ var SequenceEqualSubscriber = /*@__PURE__*/ (function (_super) {
             this._a.push(value);
             this.checkValues();
         }
-    };
-    SequenceEqualSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         if (this._oneComplete) {
             this.emit(this._a.length === 0 && this._b.length === 0);
         }
@@ -44,13 +38,13 @@ var SequenceEqualSubscriber = /*@__PURE__*/ (function (_super) {
             this._oneComplete = true;
         }
         this.unsubscribe();
-    };
-    SequenceEqualSubscriber.prototype.checkValues = function () {
-        var _c = this, _a = _c._a, _b = _c._b, comparator = _c.comparator;
+    }
+    checkValues() {
+        const { _a, _b, comparator } = this;
         while (_a.length > 0 && _b.length > 0) {
-            var a = _a.shift();
-            var b = _b.shift();
-            var areEqual = false;
+            let a = _a.shift();
+            let b = _b.shift();
+            let areEqual = false;
             try {
                 areEqual = comparator ? comparator(a, b) : a === b;
             }
@@ -61,13 +55,13 @@ var SequenceEqualSubscriber = /*@__PURE__*/ (function (_super) {
                 this.emit(false);
             }
         }
-    };
-    SequenceEqualSubscriber.prototype.emit = function (value) {
-        var destination = this.destination;
+    }
+    emit(value) {
+        const { destination } = this;
         destination.next(value);
         destination.complete();
-    };
-    SequenceEqualSubscriber.prototype.nextB = function (value) {
+    }
+    nextB(value) {
         if (this._oneComplete && this._a.length === 0) {
             this.emit(false);
         }
@@ -75,36 +69,31 @@ var SequenceEqualSubscriber = /*@__PURE__*/ (function (_super) {
             this._b.push(value);
             this.checkValues();
         }
-    };
-    SequenceEqualSubscriber.prototype.completeB = function () {
+    }
+    completeB() {
         if (this._oneComplete) {
             this.emit(this._a.length === 0 && this._b.length === 0);
         }
         else {
             this._oneComplete = true;
         }
-    };
-    return SequenceEqualSubscriber;
-}(Subscriber));
-export { SequenceEqualSubscriber };
-var SequenceEqualCompareToSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(SequenceEqualCompareToSubscriber, _super);
-    function SequenceEqualCompareToSubscriber(destination, parent) {
-        var _this = _super.call(this, destination) || this;
-        _this.parent = parent;
-        return _this;
     }
-    SequenceEqualCompareToSubscriber.prototype._next = function (value) {
+}
+class SequenceEqualCompareToSubscriber extends Subscriber {
+    constructor(destination, parent) {
+        super(destination);
+        this.parent = parent;
+    }
+    _next(value) {
         this.parent.nextB(value);
-    };
-    SequenceEqualCompareToSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.parent.error(err);
         this.unsubscribe();
-    };
-    SequenceEqualCompareToSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.parent.completeB();
         this.unsubscribe();
-    };
-    return SequenceEqualCompareToSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=sequenceEqual.js.map

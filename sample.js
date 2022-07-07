@@ -1,44 +1,38 @@
-/** PURE_IMPORTS_START tslib,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { SimpleOuterSubscriber, innerSubscribe, SimpleInnerSubscriber } from '../innerSubscribe';
 export function sample(notifier) {
-    return function (source) { return source.lift(new SampleOperator(notifier)); };
+    return (source) => source.lift(new SampleOperator(notifier));
 }
-var SampleOperator = /*@__PURE__*/ (function () {
-    function SampleOperator(notifier) {
+class SampleOperator {
+    constructor(notifier) {
         this.notifier = notifier;
     }
-    SampleOperator.prototype.call = function (subscriber, source) {
-        var sampleSubscriber = new SampleSubscriber(subscriber);
-        var subscription = source.subscribe(sampleSubscriber);
+    call(subscriber, source) {
+        const sampleSubscriber = new SampleSubscriber(subscriber);
+        const subscription = source.subscribe(sampleSubscriber);
         subscription.add(innerSubscribe(this.notifier, new SimpleInnerSubscriber(sampleSubscriber)));
         return subscription;
-    };
-    return SampleOperator;
-}());
-var SampleSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(SampleSubscriber, _super);
-    function SampleSubscriber() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.hasValue = false;
-        return _this;
     }
-    SampleSubscriber.prototype._next = function (value) {
+}
+class SampleSubscriber extends SimpleOuterSubscriber {
+    constructor() {
+        super(...arguments);
+        this.hasValue = false;
+    }
+    _next(value) {
         this.value = value;
         this.hasValue = true;
-    };
-    SampleSubscriber.prototype.notifyNext = function () {
+    }
+    notifyNext() {
         this.emitValue();
-    };
-    SampleSubscriber.prototype.notifyComplete = function () {
+    }
+    notifyComplete() {
         this.emitValue();
-    };
-    SampleSubscriber.prototype.emitValue = function () {
+    }
+    emitValue() {
         if (this.hasValue) {
             this.hasValue = false;
             this.destination.next(this.value);
         }
-    };
-    return SampleSubscriber;
-}(SimpleOuterSubscriber));
+    }
+}
 //# sourceMappingURL=sample.js.map

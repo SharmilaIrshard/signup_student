@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START _reduce PURE_IMPORTS_END */
 import { reduce } from './reduce';
 function toArrayReducer(arr, item, index) {
     if (index === 0) {
