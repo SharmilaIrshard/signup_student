@@ -1,12 +1,4 @@
-import { reduce } from './reduce';
-function toArrayReducer(arr, item, index) {
-    if (index === 0) {
-        return [item];
-    }
-    arr.push(item);
-    return arr;
-}
-export function toArray() {
-    return reduce(toArrayReducer, []);
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/operator/toArray");
 //# sourceMappingURL=toArray.js.map

@@ -1,1 +1,1 @@
-import 'rxjs-compat/add/observable/zip';
+import 'rxjs-compat/add/operator/zip';
