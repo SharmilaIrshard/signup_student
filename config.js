@@ -1,9 +1,11 @@
-let _enable_super_gross_mode_that_will_cause_bad_things = false;
-export const config = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var _enable_super_gross_mode_that_will_cause_bad_things = false;
+exports.config = {
     Promise: undefined,
     set useDeprecatedSynchronousErrorHandling(value) {
         if (value) {
-            const error = new Error();
+            var error = new Error();
             console.warn('DEPRECATED! RxJS was set to use deprecated synchronous error handling behavior by code at: \n' + error.stack);
         }
         else if (_enable_super_gross_mode_that_will_cause_bad_things) {

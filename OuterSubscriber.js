@@ -1,13 +1,7 @@
-import { Subscriber } from './Subscriber';
-export class OuterSubscriber extends Subscriber {
-    notifyNext(outerValue, innerValue, outerIndex, innerIndex, innerSub) {
-        this.destination.next(innerValue);
-    }
-    notifyError(error, innerSub) {
-        this.destination.error(error);
-    }
-    notifyComplete(innerSub) {
-        this.destination.complete();
-    }
+"use strict";
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("rxjs-compat/OuterSubscriber"));
 //# sourceMappingURL=OuterSubscriber.js.map
