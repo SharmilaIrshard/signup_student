@@ -29,22 +29,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.workspaces = exports.logging = exports.json = exports.experimental = exports.analytics = void 0;
-const analytics = __importStar(require("./analytics"));
-exports.analytics = analytics;
-const experimental = __importStar(require("./experimental"));
-exports.experimental = experimental;
-const json = __importStar(require("./json/index"));
-exports.json = json;
-const logging = __importStar(require("./logger/index"));
-exports.logging = logging;
-const workspaces = __importStar(require("./workspace"));
-exports.workspaces = workspaces;
-__exportStar(require("./exception/exception"), exports);
-__exportStar(require("./json/index"), exports);
-__exportStar(require("./utils/index"), exports);
-__exportStar(require("./virtual-fs/index"), exports);
+exports.jobs = void 0;
+const jobs = __importStar(require("./experimental/jobs/index"));
+exports.jobs = jobs;
