@@ -1,12 +1,12 @@
-/** PURE_IMPORTS_START _util_not,_util_subscribeTo,_operators_filter,_Observable PURE_IMPORTS_END */
+/** PURE_IMPORTS_START _util_not,_filter PURE_IMPORTS_END */
 import { not } from '../util/not';
-import { subscribeTo } from '../util/subscribeTo';
-import { filter } from '../operators/filter';
-import { Observable } from '../Observable';
-export function partition(source, predicate, thisArg) {
-    return [
-        filter(predicate, thisArg)(new Observable(subscribeTo(source))),
-        filter(not(predicate, thisArg))(new Observable(subscribeTo(source)))
-    ];
+import { filter } from './filter';
+export function partition(predicate, thisArg) {
+    return function (source) {
+        return [
+            filter(predicate, thisArg)(source),
+            filter(not(predicate, thisArg))(source)
+        ];
+    };
 }
 //# sourceMappingURL=partition.js.map
