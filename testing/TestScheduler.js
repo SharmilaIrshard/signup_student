@@ -1,133 +1,158 @@
-import { Observable } from '../Observable';
-import { Notification } from '../Notification';
-import { ColdObservable } from './ColdObservable';
-import { HotObservable } from './HotObservable';
-import { SubscriptionLog } from './SubscriptionLog';
-import { VirtualTimeScheduler, VirtualAction } from '../scheduler/VirtualTimeScheduler';
-import { AsyncScheduler } from '../scheduler/AsyncScheduler';
-const defaultMaxFrame = 750;
-export class TestScheduler extends VirtualTimeScheduler {
-    constructor(assertDeepEqual) {
-        super(VirtualAction, defaultMaxFrame);
-        this.assertDeepEqual = assertDeepEqual;
-        this.hotObservables = [];
-        this.coldObservables = [];
-        this.flushTests = [];
-        this.runMode = false;
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     }
-    createTime(marbles) {
-        const indexOf = marbles.indexOf('|');
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var Observable_1 = require("../Observable");
+var Notification_1 = require("../Notification");
+var ColdObservable_1 = require("./ColdObservable");
+var HotObservable_1 = require("./HotObservable");
+var SubscriptionLog_1 = require("./SubscriptionLog");
+var VirtualTimeScheduler_1 = require("../scheduler/VirtualTimeScheduler");
+var AsyncScheduler_1 = require("../scheduler/AsyncScheduler");
+var defaultMaxFrame = 750;
+var TestScheduler = (function (_super) {
+    __extends(TestScheduler, _super);
+    function TestScheduler(assertDeepEqual) {
+        var _this = _super.call(this, VirtualTimeScheduler_1.VirtualAction, defaultMaxFrame) || this;
+        _this.assertDeepEqual = assertDeepEqual;
+        _this.hotObservables = [];
+        _this.coldObservables = [];
+        _this.flushTests = [];
+        _this.runMode = false;
+        return _this;
+    }
+    TestScheduler.prototype.createTime = function (marbles) {
+        var indexOf = marbles.indexOf('|');
         if (indexOf === -1) {
             throw new Error('marble diagram for time should have a completion marker "|"');
         }
         return indexOf * TestScheduler.frameTimeFactor;
-    }
-    createColdObservable(marbles, values, error) {
+    };
+    TestScheduler.prototype.createColdObservable = function (marbles, values, error) {
         if (marbles.indexOf('^') !== -1) {
             throw new Error('cold observable cannot have subscription offset "^"');
         }
         if (marbles.indexOf('!') !== -1) {
             throw new Error('cold observable cannot have unsubscription marker "!"');
         }
-        const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
-        const cold = new ColdObservable(messages, this);
+        var messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
+        var cold = new ColdObservable_1.ColdObservable(messages, this);
         this.coldObservables.push(cold);
         return cold;
-    }
-    createHotObservable(marbles, values, error) {
+    };
+    TestScheduler.prototype.createHotObservable = function (marbles, values, error) {
         if (marbles.indexOf('!') !== -1) {
             throw new Error('hot observable cannot have unsubscription marker "!"');
         }
-        const messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
-        const subject = new HotObservable(messages, this);
+        var messages = TestScheduler.parseMarbles(marbles, values, error, undefined, this.runMode);
+        var subject = new HotObservable_1.HotObservable(messages, this);
         this.hotObservables.push(subject);
         return subject;
-    }
-    materializeInnerObservable(observable, outerFrame) {
-        const messages = [];
-        observable.subscribe((value) => {
-            messages.push({ frame: this.frame - outerFrame, notification: Notification.createNext(value) });
-        }, (err) => {
-            messages.push({ frame: this.frame - outerFrame, notification: Notification.createError(err) });
-        }, () => {
-            messages.push({ frame: this.frame - outerFrame, notification: Notification.createComplete() });
+    };
+    TestScheduler.prototype.materializeInnerObservable = function (observable, outerFrame) {
+        var _this = this;
+        var messages = [];
+        observable.subscribe(function (value) {
+            messages.push({ frame: _this.frame - outerFrame, notification: Notification_1.Notification.createNext(value) });
+        }, function (err) {
+            messages.push({ frame: _this.frame - outerFrame, notification: Notification_1.Notification.createError(err) });
+        }, function () {
+            messages.push({ frame: _this.frame - outerFrame, notification: Notification_1.Notification.createComplete() });
         });
         return messages;
-    }
-    expectObservable(observable, subscriptionMarbles = null) {
-        const actual = [];
-        const flushTest = { actual, ready: false };
-        const subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode);
-        const subscriptionFrame = subscriptionParsed.subscribedFrame === Number.POSITIVE_INFINITY ?
+    };
+    TestScheduler.prototype.expectObservable = function (observable, subscriptionMarbles) {
+        var _this = this;
+        if (subscriptionMarbles === void 0) { subscriptionMarbles = null; }
+        var actual = [];
+        var flushTest = { actual: actual, ready: false };
+        var subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode);
+        var subscriptionFrame = subscriptionParsed.subscribedFrame === Number.POSITIVE_INFINITY ?
             0 : subscriptionParsed.subscribedFrame;
-        const unsubscriptionFrame = subscriptionParsed.unsubscribedFrame;
-        let subscription;
-        this.schedule(() => {
-            subscription = observable.subscribe(x => {
-                let value = x;
-                if (x instanceof Observable) {
-                    value = this.materializeInnerObservable(value, this.frame);
+        var unsubscriptionFrame = subscriptionParsed.unsubscribedFrame;
+        var subscription;
+        this.schedule(function () {
+            subscription = observable.subscribe(function (x) {
+                var value = x;
+                if (x instanceof Observable_1.Observable) {
+                    value = _this.materializeInnerObservable(value, _this.frame);
                 }
-                actual.push({ frame: this.frame, notification: Notification.createNext(value) });
-            }, (err) => {
-                actual.push({ frame: this.frame, notification: Notification.createError(err) });
-            }, () => {
-                actual.push({ frame: this.frame, notification: Notification.createComplete() });
+                actual.push({ frame: _this.frame, notification: Notification_1.Notification.createNext(value) });
+            }, function (err) {
+                actual.push({ frame: _this.frame, notification: Notification_1.Notification.createError(err) });
+            }, function () {
+                actual.push({ frame: _this.frame, notification: Notification_1.Notification.createComplete() });
             });
         }, subscriptionFrame);
         if (unsubscriptionFrame !== Number.POSITIVE_INFINITY) {
-            this.schedule(() => subscription.unsubscribe(), unsubscriptionFrame);
+            this.schedule(function () { return subscription.unsubscribe(); }, unsubscriptionFrame);
         }
         this.flushTests.push(flushTest);
-        const { runMode } = this;
+        var runMode = this.runMode;
         return {
-            toBe(marbles, values, errorValue) {
+            toBe: function (marbles, values, errorValue) {
                 flushTest.ready = true;
                 flushTest.expected = TestScheduler.parseMarbles(marbles, values, errorValue, true, runMode);
             }
         };
-    }
-    expectSubscriptions(actualSubscriptionLogs) {
-        const flushTest = { actual: actualSubscriptionLogs, ready: false };
+    };
+    TestScheduler.prototype.expectSubscriptions = function (actualSubscriptionLogs) {
+        var flushTest = { actual: actualSubscriptionLogs, ready: false };
         this.flushTests.push(flushTest);
-        const { runMode } = this;
+        var runMode = this.runMode;
         return {
-            toBe(marbles) {
-                const marblesArray = (typeof marbles === 'string') ? [marbles] : marbles;
+            toBe: function (marbles) {
+                var marblesArray = (typeof marbles === 'string') ? [marbles] : marbles;
                 flushTest.ready = true;
-                flushTest.expected = marblesArray.map(marbles => TestScheduler.parseMarblesAsSubscriptions(marbles, runMode));
+                flushTest.expected = marblesArray.map(function (marbles) {
+                    return TestScheduler.parseMarblesAsSubscriptions(marbles, runMode);
+                });
             }
         };
-    }
-    flush() {
-        const hotObservables = this.hotObservables;
+    };
+    TestScheduler.prototype.flush = function () {
+        var _this = this;
+        var hotObservables = this.hotObservables;
         while (hotObservables.length > 0) {
             hotObservables.shift().setup();
         }
-        super.flush();
-        this.flushTests = this.flushTests.filter(test => {
+        _super.prototype.flush.call(this);
+        this.flushTests = this.flushTests.filter(function (test) {
             if (test.ready) {
-                this.assertDeepEqual(test.actual, test.expected);
+                _this.assertDeepEqual(test.actual, test.expected);
                 return false;
             }
             return true;
         });
-    }
-    static parseMarblesAsSubscriptions(marbles, runMode = false) {
+    };
+    TestScheduler.parseMarblesAsSubscriptions = function (marbles, runMode) {
+        var _this = this;
+        if (runMode === void 0) { runMode = false; }
         if (typeof marbles !== 'string') {
-            return new SubscriptionLog(Number.POSITIVE_INFINITY);
+            return new SubscriptionLog_1.SubscriptionLog(Number.POSITIVE_INFINITY);
         }
-        const len = marbles.length;
-        let groupStart = -1;
-        let subscriptionFrame = Number.POSITIVE_INFINITY;
-        let unsubscriptionFrame = Number.POSITIVE_INFINITY;
-        let frame = 0;
-        for (let i = 0; i < len; i++) {
-            let nextFrame = frame;
-            const advanceFrameBy = (count) => {
-                nextFrame += count * this.frameTimeFactor;
+        var len = marbles.length;
+        var groupStart = -1;
+        var subscriptionFrame = Number.POSITIVE_INFINITY;
+        var unsubscriptionFrame = Number.POSITIVE_INFINITY;
+        var frame = 0;
+        var _loop_1 = function (i) {
+            var nextFrame = frame;
+            var advanceFrameBy = function (count) {
+                nextFrame += count * _this.frameTimeFactor;
             };
-            const c = marbles[i];
+            var c = marbles[i];
             switch (c) {
                 case ' ':
                     if (!runMode) {
@@ -163,13 +188,13 @@ export class TestScheduler extends VirtualTimeScheduler {
                 default:
                     if (runMode && c.match(/^[0-9]$/)) {
                         if (i === 0 || marbles[i - 1] === ' ') {
-                            const buffer = marbles.slice(i);
-                            const match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
+                            var buffer = marbles.slice(i);
+                            var match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
                             if (match) {
                                 i += match[0].length - 1;
-                                const duration = parseFloat(match[1]);
-                                const unit = match[2];
-                                let durationInMs;
+                                var duration = parseFloat(match[1]);
+                                var unit = match[2];
+                                var durationInMs = void 0;
                                 switch (unit) {
                                     case 'ms':
                                         durationInMs = duration;
@@ -183,7 +208,7 @@ export class TestScheduler extends VirtualTimeScheduler {
                                     default:
                                         break;
                                 }
-                                advanceFrameBy(durationInMs / this.frameTimeFactor);
+                                advanceFrameBy(durationInMs / this_1.frameTimeFactor);
                                 break;
                             }
                         }
@@ -192,39 +217,48 @@ export class TestScheduler extends VirtualTimeScheduler {
                         'subscription marble diagram. Found instead \'' + c + '\'.');
             }
             frame = nextFrame;
+            out_i_1 = i;
+        };
+        var this_1 = this, out_i_1;
+        for (var i = 0; i < len; i++) {
+            _loop_1(i);
+            i = out_i_1;
         }
         if (unsubscriptionFrame < 0) {
-            return new SubscriptionLog(subscriptionFrame);
+            return new SubscriptionLog_1.SubscriptionLog(subscriptionFrame);
         }
         else {
-            return new SubscriptionLog(subscriptionFrame, unsubscriptionFrame);
+            return new SubscriptionLog_1.SubscriptionLog(subscriptionFrame, unsubscriptionFrame);
         }
-    }
-    static parseMarbles(marbles, values, errorValue, materializeInnerObservables = false, runMode = false) {
+    };
+    TestScheduler.parseMarbles = function (marbles, values, errorValue, materializeInnerObservables, runMode) {
+        var _this = this;
+        if (materializeInnerObservables === void 0) { materializeInnerObservables = false; }
+        if (runMode === void 0) { runMode = false; }
         if (marbles.indexOf('!') !== -1) {
             throw new Error('conventional marble diagrams cannot have the ' +
                 'unsubscription marker "!"');
         }
-        const len = marbles.length;
-        const testMessages = [];
-        const subIndex = runMode ? marbles.replace(/^[ ]+/, '').indexOf('^') : marbles.indexOf('^');
-        let frame = subIndex === -1 ? 0 : (subIndex * -this.frameTimeFactor);
-        const getValue = typeof values !== 'object' ?
-            (x) => x :
-            (x) => {
-                if (materializeInnerObservables && values[x] instanceof ColdObservable) {
+        var len = marbles.length;
+        var testMessages = [];
+        var subIndex = runMode ? marbles.replace(/^[ ]+/, '').indexOf('^') : marbles.indexOf('^');
+        var frame = subIndex === -1 ? 0 : (subIndex * -this.frameTimeFactor);
+        var getValue = typeof values !== 'object' ?
+            function (x) { return x; } :
+            function (x) {
+                if (materializeInnerObservables && values[x] instanceof ColdObservable_1.ColdObservable) {
                     return values[x].messages;
                 }
                 return values[x];
             };
-        let groupStart = -1;
-        for (let i = 0; i < len; i++) {
-            let nextFrame = frame;
-            const advanceFrameBy = (count) => {
-                nextFrame += count * this.frameTimeFactor;
+        var groupStart = -1;
+        var _loop_2 = function (i) {
+            var nextFrame = frame;
+            var advanceFrameBy = function (count) {
+                nextFrame += count * _this.frameTimeFactor;
             };
-            let notification;
-            const c = marbles[i];
+            var notification = void 0;
+            var c = marbles[i];
             switch (c) {
                 case ' ':
                     if (!runMode) {
@@ -243,26 +277,26 @@ export class TestScheduler extends VirtualTimeScheduler {
                     advanceFrameBy(1);
                     break;
                 case '|':
-                    notification = Notification.createComplete();
+                    notification = Notification_1.Notification.createComplete();
                     advanceFrameBy(1);
                     break;
                 case '^':
                     advanceFrameBy(1);
                     break;
                 case '#':
-                    notification = Notification.createError(errorValue || 'error');
+                    notification = Notification_1.Notification.createError(errorValue || 'error');
                     advanceFrameBy(1);
                     break;
                 default:
                     if (runMode && c.match(/^[0-9]$/)) {
                         if (i === 0 || marbles[i - 1] === ' ') {
-                            const buffer = marbles.slice(i);
-                            const match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
+                            var buffer = marbles.slice(i);
+                            var match = buffer.match(/^([0-9]+(?:\.[0-9]+)?)(ms|s|m) /);
                             if (match) {
                                 i += match[0].length - 1;
-                                const duration = parseFloat(match[1]);
-                                const unit = match[2];
-                                let durationInMs;
+                                var duration = parseFloat(match[1]);
+                                var unit = match[2];
+                                var durationInMs = void 0;
                                 switch (unit) {
                                     case 'ms':
                                         durationInMs = duration;
@@ -276,30 +310,36 @@ export class TestScheduler extends VirtualTimeScheduler {
                                     default:
                                         break;
                                 }
-                                advanceFrameBy(durationInMs / this.frameTimeFactor);
+                                advanceFrameBy(durationInMs / this_2.frameTimeFactor);
                                 break;
                             }
                         }
                     }
-                    notification = Notification.createNext(getValue(c));
+                    notification = Notification_1.Notification.createNext(getValue(c));
                     advanceFrameBy(1);
                     break;
             }
             if (notification) {
-                testMessages.push({ frame: groupStart > -1 ? groupStart : frame, notification });
+                testMessages.push({ frame: groupStart > -1 ? groupStart : frame, notification: notification });
             }
             frame = nextFrame;
+            out_i_2 = i;
+        };
+        var this_2 = this, out_i_2;
+        for (var i = 0; i < len; i++) {
+            _loop_2(i);
+            i = out_i_2;
         }
         return testMessages;
-    }
-    run(callback) {
-        const prevFrameTimeFactor = TestScheduler.frameTimeFactor;
-        const prevMaxFrames = this.maxFrames;
+    };
+    TestScheduler.prototype.run = function (callback) {
+        var prevFrameTimeFactor = TestScheduler.frameTimeFactor;
+        var prevMaxFrames = this.maxFrames;
         TestScheduler.frameTimeFactor = 1;
         this.maxFrames = Number.POSITIVE_INFINITY;
         this.runMode = true;
-        AsyncScheduler.delegate = this;
-        const helpers = {
+        AsyncScheduler_1.AsyncScheduler.delegate = this;
+        var helpers = {
             cold: this.createColdObservable.bind(this),
             hot: this.createHotObservable.bind(this),
             flush: this.flush.bind(this),
@@ -307,7 +347,7 @@ export class TestScheduler extends VirtualTimeScheduler {
             expectSubscriptions: this.expectSubscriptions.bind(this),
         };
         try {
-            const ret = callback(helpers);
+            var ret = callback(helpers);
             this.flush();
             return ret;
         }
@@ -315,8 +355,10 @@ export class TestScheduler extends VirtualTimeScheduler {
             TestScheduler.frameTimeFactor = prevFrameTimeFactor;
             this.maxFrames = prevMaxFrames;
             this.runMode = false;
-            AsyncScheduler.delegate = undefined;
+            AsyncScheduler_1.AsyncScheduler.delegate = undefined;
         }
-    }
-}
+    };
+    return TestScheduler;
+}(VirtualTimeScheduler_1.VirtualTimeScheduler));
+exports.TestScheduler = TestScheduler;
 //# sourceMappingURL=TestScheduler.js.map
