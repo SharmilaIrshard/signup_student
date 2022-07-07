@@ -1,37 +1,32 @@
-/** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 export function every(predicate, thisArg) {
-    return function (source) { return source.lift(new EveryOperator(predicate, thisArg, source)); };
+    return (source) => source.lift(new EveryOperator(predicate, thisArg, source));
 }
-var EveryOperator = /*@__PURE__*/ (function () {
-    function EveryOperator(predicate, thisArg, source) {
+class EveryOperator {
+    constructor(predicate, thisArg, source) {
         this.predicate = predicate;
         this.thisArg = thisArg;
         this.source = source;
     }
-    EveryOperator.prototype.call = function (observer, source) {
+    call(observer, source) {
         return source.subscribe(new EverySubscriber(observer, this.predicate, this.thisArg, this.source));
-    };
-    return EveryOperator;
-}());
-var EverySubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(EverySubscriber, _super);
-    function EverySubscriber(destination, predicate, thisArg, source) {
-        var _this = _super.call(this, destination) || this;
-        _this.predicate = predicate;
-        _this.thisArg = thisArg;
-        _this.source = source;
-        _this.index = 0;
-        _this.thisArg = thisArg || _this;
-        return _this;
     }
-    EverySubscriber.prototype.notifyComplete = function (everyValueMatch) {
+}
+class EverySubscriber extends Subscriber {
+    constructor(destination, predicate, thisArg, source) {
+        super(destination);
+        this.predicate = predicate;
+        this.thisArg = thisArg;
+        this.source = source;
+        this.index = 0;
+        this.thisArg = thisArg || this;
+    }
+    notifyComplete(everyValueMatch) {
         this.destination.next(everyValueMatch);
         this.destination.complete();
-    };
-    EverySubscriber.prototype._next = function (value) {
-        var result = false;
+    }
+    _next(value) {
+        let result = false;
         try {
             result = this.predicate.call(this.thisArg, value, this.index++, this.source);
         }
@@ -42,10 +37,9 @@ var EverySubscriber = /*@__PURE__*/ (function (_super) {
         if (!result) {
             this.notifyComplete(false);
         }
-    };
-    EverySubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.notifyComplete(true);
-    };
-    return EverySubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=every.js.map

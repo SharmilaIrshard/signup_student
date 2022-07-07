@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Subscription,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscription } from '../Subscription';
 import { SimpleOuterSubscriber, innerSubscribe, SimpleInnerSubscriber } from '../innerSubscribe';
 export function bufferWhen(closingSelector) {
@@ -7,63 +5,60 @@ export function bufferWhen(closingSelector) {
         return source.lift(new BufferWhenOperator(closingSelector));
     };
 }
-var BufferWhenOperator = /*@__PURE__*/ (function () {
-    function BufferWhenOperator(closingSelector) {
+class BufferWhenOperator {
+    constructor(closingSelector) {
         this.closingSelector = closingSelector;
     }
-    BufferWhenOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new BufferWhenSubscriber(subscriber, this.closingSelector));
-    };
-    return BufferWhenOperator;
-}());
-var BufferWhenSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(BufferWhenSubscriber, _super);
-    function BufferWhenSubscriber(destination, closingSelector) {
-        var _this = _super.call(this, destination) || this;
-        _this.closingSelector = closingSelector;
-        _this.subscribing = false;
-        _this.openBuffer();
-        return _this;
     }
-    BufferWhenSubscriber.prototype._next = function (value) {
+}
+class BufferWhenSubscriber extends SimpleOuterSubscriber {
+    constructor(destination, closingSelector) {
+        super(destination);
+        this.closingSelector = closingSelector;
+        this.subscribing = false;
+        this.openBuffer();
+    }
+    _next(value) {
         this.buffer.push(value);
-    };
-    BufferWhenSubscriber.prototype._complete = function () {
-        var buffer = this.buffer;
+    }
+    _complete() {
+        const buffer = this.buffer;
         if (buffer) {
             this.destination.next(buffer);
         }
-        _super.prototype._complete.call(this);
-    };
-    BufferWhenSubscriber.prototype._unsubscribe = function () {
+        super._complete();
+    }
+    _unsubscribe() {
         this.buffer = undefined;
         this.subscribing = false;
-    };
-    BufferWhenSubscriber.prototype.notifyNext = function () {
+    }
+    notifyNext() {
         this.openBuffer();
-    };
-    BufferWhenSubscriber.prototype.notifyComplete = function () {
+    }
+    notifyComplete() {
         if (this.subscribing) {
             this.complete();
         }
         else {
             this.openBuffer();
         }
-    };
-    BufferWhenSubscriber.prototype.openBuffer = function () {
-        var closingSubscription = this.closingSubscription;
+    }
+    openBuffer() {
+        let { closingSubscription } = this;
         if (closingSubscription) {
             this.remove(closingSubscription);
             closingSubscription.unsubscribe();
         }
-        var buffer = this.buffer;
+        const buffer = this.buffer;
         if (this.buffer) {
             this.destination.next(buffer);
         }
         this.buffer = [];
-        var closingNotifier;
+        let closingNotifier;
         try {
-            var closingSelector = this.closingSelector;
+            const { closingSelector } = this;
             closingNotifier = closingSelector();
         }
         catch (err) {
@@ -75,7 +70,6 @@ var BufferWhenSubscriber = /*@__PURE__*/ (function (_super) {
         this.subscribing = true;
         closingSubscription.add(innerSubscribe(closingNotifier, new SimpleInnerSubscriber(this)));
         this.subscribing = false;
-    };
-    return BufferWhenSubscriber;
-}(SimpleOuterSubscriber));
+    }
+}
 //# sourceMappingURL=bufferWhen.js.map

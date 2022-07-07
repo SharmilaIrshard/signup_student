@@ -1,68 +1,55 @@
-/** PURE_IMPORTS_START tslib,_observable_from,_util_isArray,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { from } from '../observable/from';
 import { isArray } from '../util/isArray';
 import { SimpleOuterSubscriber, SimpleInnerSubscriber, innerSubscribe } from '../innerSubscribe';
-export function onErrorResumeNext() {
-    var nextSources = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        nextSources[_i] = arguments[_i];
-    }
+export function onErrorResumeNext(...nextSources) {
     if (nextSources.length === 1 && isArray(nextSources[0])) {
         nextSources = nextSources[0];
     }
-    return function (source) { return source.lift(new OnErrorResumeNextOperator(nextSources)); };
+    return (source) => source.lift(new OnErrorResumeNextOperator(nextSources));
 }
-export function onErrorResumeNextStatic() {
-    var nextSources = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        nextSources[_i] = arguments[_i];
-    }
-    var source = undefined;
+export function onErrorResumeNextStatic(...nextSources) {
+    let source = undefined;
     if (nextSources.length === 1 && isArray(nextSources[0])) {
         nextSources = nextSources[0];
     }
     source = nextSources.shift();
     return from(source).lift(new OnErrorResumeNextOperator(nextSources));
 }
-var OnErrorResumeNextOperator = /*@__PURE__*/ (function () {
-    function OnErrorResumeNextOperator(nextSources) {
+class OnErrorResumeNextOperator {
+    constructor(nextSources) {
         this.nextSources = nextSources;
     }
-    OnErrorResumeNextOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new OnErrorResumeNextSubscriber(subscriber, this.nextSources));
-    };
-    return OnErrorResumeNextOperator;
-}());
-var OnErrorResumeNextSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(OnErrorResumeNextSubscriber, _super);
-    function OnErrorResumeNextSubscriber(destination, nextSources) {
-        var _this = _super.call(this, destination) || this;
-        _this.destination = destination;
-        _this.nextSources = nextSources;
-        return _this;
     }
-    OnErrorResumeNextSubscriber.prototype.notifyError = function () {
+}
+class OnErrorResumeNextSubscriber extends SimpleOuterSubscriber {
+    constructor(destination, nextSources) {
+        super(destination);
+        this.destination = destination;
+        this.nextSources = nextSources;
+    }
+    notifyError() {
         this.subscribeToNextSource();
-    };
-    OnErrorResumeNextSubscriber.prototype.notifyComplete = function () {
+    }
+    notifyComplete() {
         this.subscribeToNextSource();
-    };
-    OnErrorResumeNextSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.subscribeToNextSource();
         this.unsubscribe();
-    };
-    OnErrorResumeNextSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.subscribeToNextSource();
         this.unsubscribe();
-    };
-    OnErrorResumeNextSubscriber.prototype.subscribeToNextSource = function () {
-        var next = this.nextSources.shift();
+    }
+    subscribeToNextSource() {
+        const next = this.nextSources.shift();
         if (!!next) {
-            var innerSubscriber = new SimpleInnerSubscriber(this);
-            var destination = this.destination;
+            const innerSubscriber = new SimpleInnerSubscriber(this);
+            const destination = this.destination;
             destination.add(innerSubscriber);
-            var innerSubscription = innerSubscribe(next, innerSubscriber);
+            const innerSubscription = innerSubscribe(next, innerSubscriber);
             if (innerSubscription !== innerSubscriber) {
                 destination.add(innerSubscription);
             }
@@ -70,7 +57,6 @@ var OnErrorResumeNextSubscriber = /*@__PURE__*/ (function (_super) {
         else {
             this.destination.complete();
         }
-    };
-    return OnErrorResumeNextSubscriber;
-}(SimpleOuterSubscriber));
+    }
+}
 //# sourceMappingURL=onErrorResumeNext.js.map

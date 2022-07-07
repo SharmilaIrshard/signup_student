@@ -1,63 +1,54 @@
-/** PURE_IMPORTS_START tslib,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { SimpleOuterSubscriber, innerSubscribe, SimpleInnerSubscriber } from '../innerSubscribe';
-export function expand(project, concurrent, scheduler) {
-    if (concurrent === void 0) {
-        concurrent = Number.POSITIVE_INFINITY;
-    }
+export function expand(project, concurrent = Number.POSITIVE_INFINITY, scheduler) {
     concurrent = (concurrent || 0) < 1 ? Number.POSITIVE_INFINITY : concurrent;
-    return function (source) { return source.lift(new ExpandOperator(project, concurrent, scheduler)); };
+    return (source) => source.lift(new ExpandOperator(project, concurrent, scheduler));
 }
-var ExpandOperator = /*@__PURE__*/ (function () {
-    function ExpandOperator(project, concurrent, scheduler) {
+export class ExpandOperator {
+    constructor(project, concurrent, scheduler) {
         this.project = project;
         this.concurrent = concurrent;
         this.scheduler = scheduler;
     }
-    ExpandOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new ExpandSubscriber(subscriber, this.project, this.concurrent, this.scheduler));
-    };
-    return ExpandOperator;
-}());
-export { ExpandOperator };
-var ExpandSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(ExpandSubscriber, _super);
-    function ExpandSubscriber(destination, project, concurrent, scheduler) {
-        var _this = _super.call(this, destination) || this;
-        _this.project = project;
-        _this.concurrent = concurrent;
-        _this.scheduler = scheduler;
-        _this.index = 0;
-        _this.active = 0;
-        _this.hasCompleted = false;
-        if (concurrent < Number.POSITIVE_INFINITY) {
-            _this.buffer = [];
-        }
-        return _this;
     }
-    ExpandSubscriber.dispatch = function (arg) {
-        var subscriber = arg.subscriber, result = arg.result, value = arg.value, index = arg.index;
+}
+export class ExpandSubscriber extends SimpleOuterSubscriber {
+    constructor(destination, project, concurrent, scheduler) {
+        super(destination);
+        this.project = project;
+        this.concurrent = concurrent;
+        this.scheduler = scheduler;
+        this.index = 0;
+        this.active = 0;
+        this.hasCompleted = false;
+        if (concurrent < Number.POSITIVE_INFINITY) {
+            this.buffer = [];
+        }
+    }
+    static dispatch(arg) {
+        const { subscriber, result, value, index } = arg;
         subscriber.subscribeToProjection(result, value, index);
-    };
-    ExpandSubscriber.prototype._next = function (value) {
-        var destination = this.destination;
+    }
+    _next(value) {
+        const destination = this.destination;
         if (destination.closed) {
             this._complete();
             return;
         }
-        var index = this.index++;
+        const index = this.index++;
         if (this.active < this.concurrent) {
             destination.next(value);
             try {
-                var project = this.project;
-                var result = project(value, index);
+                const { project } = this;
+                const result = project(value, index);
                 if (!this.scheduler) {
                     this.subscribeToProjection(result, value, index);
                 }
                 else {
-                    var state = { subscriber: this, result: result, value: value, index: index };
-                    var destination_1 = this.destination;
-                    destination_1.add(this.scheduler.schedule(ExpandSubscriber.dispatch, 0, state));
+                    const state = { subscriber: this, result, value, index };
+                    const destination = this.destination;
+                    destination.add(this.scheduler.schedule(ExpandSubscriber.dispatch, 0, state));
                 }
             }
             catch (e) {
@@ -67,24 +58,24 @@ var ExpandSubscriber = /*@__PURE__*/ (function (_super) {
         else {
             this.buffer.push(value);
         }
-    };
-    ExpandSubscriber.prototype.subscribeToProjection = function (result, value, index) {
+    }
+    subscribeToProjection(result, value, index) {
         this.active++;
-        var destination = this.destination;
+        const destination = this.destination;
         destination.add(innerSubscribe(result, new SimpleInnerSubscriber(this)));
-    };
-    ExpandSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.hasCompleted = true;
         if (this.hasCompleted && this.active === 0) {
             this.destination.complete();
         }
         this.unsubscribe();
-    };
-    ExpandSubscriber.prototype.notifyNext = function (innerValue) {
+    }
+    notifyNext(innerValue) {
         this._next(innerValue);
-    };
-    ExpandSubscriber.prototype.notifyComplete = function () {
-        var buffer = this.buffer;
+    }
+    notifyComplete() {
+        const buffer = this.buffer;
         this.active--;
         if (buffer && buffer.length > 0) {
             this._next(buffer.shift());
@@ -92,8 +83,6 @@ var ExpandSubscriber = /*@__PURE__*/ (function (_super) {
         if (this.hasCompleted && this.active === 0) {
             this.destination.complete();
         }
-    };
-    return ExpandSubscriber;
-}(SimpleOuterSubscriber));
-export { ExpandSubscriber };
+    }
+}
 //# sourceMappingURL=expand.js.map

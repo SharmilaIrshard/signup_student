@@ -1,5 +1,3 @@
-/** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subscriber } from '../Subscriber';
 export function map(project, thisArg) {
     return function mapOperation(source) {
@@ -9,28 +7,24 @@ export function map(project, thisArg) {
         return source.lift(new MapOperator(project, thisArg));
     };
 }
-var MapOperator = /*@__PURE__*/ (function () {
-    function MapOperator(project, thisArg) {
+export class MapOperator {
+    constructor(project, thisArg) {
         this.project = project;
         this.thisArg = thisArg;
     }
-    MapOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new MapSubscriber(subscriber, this.project, this.thisArg));
-    };
-    return MapOperator;
-}());
-export { MapOperator };
-var MapSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(MapSubscriber, _super);
-    function MapSubscriber(destination, project, thisArg) {
-        var _this = _super.call(this, destination) || this;
-        _this.project = project;
-        _this.count = 0;
-        _this.thisArg = thisArg || _this;
-        return _this;
     }
-    MapSubscriber.prototype._next = function (value) {
-        var result;
+}
+class MapSubscriber extends Subscriber {
+    constructor(destination, project, thisArg) {
+        super(destination);
+        this.project = project;
+        this.count = 0;
+        this.thisArg = thisArg || this;
+    }
+    _next(value) {
+        let result;
         try {
             result = this.project.call(this.thisArg, value, this.count++);
         }
@@ -39,7 +33,6 @@ var MapSubscriber = /*@__PURE__*/ (function (_super) {
             return;
         }
         this.destination.next(result);
-    };
-    return MapSubscriber;
-}(Subscriber));
+    }
+}
 //# sourceMappingURL=map.js.map

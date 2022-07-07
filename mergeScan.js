@@ -1,45 +1,36 @@
-/** PURE_IMPORTS_START tslib,_innerSubscribe PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { SimpleOuterSubscriber, SimpleInnerSubscriber, innerSubscribe } from '../innerSubscribe';
-export function mergeScan(accumulator, seed, concurrent) {
-    if (concurrent === void 0) {
-        concurrent = Number.POSITIVE_INFINITY;
-    }
-    return function (source) { return source.lift(new MergeScanOperator(accumulator, seed, concurrent)); };
+export function mergeScan(accumulator, seed, concurrent = Number.POSITIVE_INFINITY) {
+    return (source) => source.lift(new MergeScanOperator(accumulator, seed, concurrent));
 }
-var MergeScanOperator = /*@__PURE__*/ (function () {
-    function MergeScanOperator(accumulator, seed, concurrent) {
+export class MergeScanOperator {
+    constructor(accumulator, seed, concurrent) {
         this.accumulator = accumulator;
         this.seed = seed;
         this.concurrent = concurrent;
     }
-    MergeScanOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new MergeScanSubscriber(subscriber, this.accumulator, this.seed, this.concurrent));
-    };
-    return MergeScanOperator;
-}());
-export { MergeScanOperator };
-var MergeScanSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(MergeScanSubscriber, _super);
-    function MergeScanSubscriber(destination, accumulator, acc, concurrent) {
-        var _this = _super.call(this, destination) || this;
-        _this.accumulator = accumulator;
-        _this.acc = acc;
-        _this.concurrent = concurrent;
-        _this.hasValue = false;
-        _this.hasCompleted = false;
-        _this.buffer = [];
-        _this.active = 0;
-        _this.index = 0;
-        return _this;
     }
-    MergeScanSubscriber.prototype._next = function (value) {
+}
+export class MergeScanSubscriber extends SimpleOuterSubscriber {
+    constructor(destination, accumulator, acc, concurrent) {
+        super(destination);
+        this.accumulator = accumulator;
+        this.acc = acc;
+        this.concurrent = concurrent;
+        this.hasValue = false;
+        this.hasCompleted = false;
+        this.buffer = [];
+        this.active = 0;
+        this.index = 0;
+    }
+    _next(value) {
         if (this.active < this.concurrent) {
-            var index = this.index++;
-            var destination = this.destination;
-            var ish = void 0;
+            const index = this.index++;
+            const destination = this.destination;
+            let ish;
             try {
-                var accumulator = this.accumulator;
+                const { accumulator } = this;
                 ish = accumulator(this.acc, value, index);
             }
             catch (e) {
@@ -51,17 +42,17 @@ var MergeScanSubscriber = /*@__PURE__*/ (function (_super) {
         else {
             this.buffer.push(value);
         }
-    };
-    MergeScanSubscriber.prototype._innerSub = function (ish) {
-        var innerSubscriber = new SimpleInnerSubscriber(this);
-        var destination = this.destination;
+    }
+    _innerSub(ish) {
+        const innerSubscriber = new SimpleInnerSubscriber(this);
+        const destination = this.destination;
         destination.add(innerSubscriber);
-        var innerSubscription = innerSubscribe(ish, innerSubscriber);
+        const innerSubscription = innerSubscribe(ish, innerSubscriber);
         if (innerSubscription !== innerSubscriber) {
             destination.add(innerSubscription);
         }
-    };
-    MergeScanSubscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.hasCompleted = true;
         if (this.active === 0 && this.buffer.length === 0) {
             if (this.hasValue === false) {
@@ -70,15 +61,15 @@ var MergeScanSubscriber = /*@__PURE__*/ (function (_super) {
             this.destination.complete();
         }
         this.unsubscribe();
-    };
-    MergeScanSubscriber.prototype.notifyNext = function (innerValue) {
-        var destination = this.destination;
+    }
+    notifyNext(innerValue) {
+        const { destination } = this;
         this.acc = innerValue;
         this.hasValue = true;
         destination.next(innerValue);
-    };
-    MergeScanSubscriber.prototype.notifyComplete = function () {
-        var buffer = this.buffer;
+    }
+    notifyComplete() {
+        const buffer = this.buffer;
         this.active--;
         if (buffer.length > 0) {
             this._next(buffer.shift());
@@ -89,8 +80,6 @@ var MergeScanSubscriber = /*@__PURE__*/ (function (_super) {
             }
             this.destination.complete();
         }
-    };
-    return MergeScanSubscriber;
-}(SimpleOuterSubscriber));
-export { MergeScanSubscriber };
+    }
+}
 //# sourceMappingURL=mergeScan.js.map

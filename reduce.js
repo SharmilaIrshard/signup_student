@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START _scan,_takeLast,_defaultIfEmpty,_util_pipe PURE_IMPORTS_END */
 import { scan } from './scan';
 import { takeLast } from './takeLast';
 import { defaultIfEmpty } from './defaultIfEmpty';
@@ -10,7 +9,7 @@ export function reduce(accumulator, seed) {
         };
     }
     return function reduceOperatorFunction(source) {
-        return pipe(scan(function (acc, value, index) { return accumulator(acc, value, index + 1); }), takeLast(1))(source);
+        return pipe(scan((acc, value, index) => accumulator(acc, value, index + 1)), takeLast(1))(source);
     };
 }
 //# sourceMappingURL=reduce.js.map

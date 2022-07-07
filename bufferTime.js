@@ -1,20 +1,18 @@
-/** PURE_IMPORTS_START tslib,_scheduler_async,_Subscriber,_util_isScheduler PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { async } from '../scheduler/async';
 import { Subscriber } from '../Subscriber';
 import { isScheduler } from '../util/isScheduler';
 export function bufferTime(bufferTimeSpan) {
-    var length = arguments.length;
-    var scheduler = async;
+    let length = arguments.length;
+    let scheduler = async;
     if (isScheduler(arguments[arguments.length - 1])) {
         scheduler = arguments[arguments.length - 1];
         length--;
     }
-    var bufferCreationInterval = null;
+    let bufferCreationInterval = null;
     if (length >= 2) {
         bufferCreationInterval = arguments[1];
     }
-    var maxBufferSize = Number.POSITIVE_INFINITY;
+    let maxBufferSize = Number.POSITIVE_INFINITY;
     if (length >= 3) {
         maxBufferSize = arguments[2];
     }
@@ -22,108 +20,103 @@ export function bufferTime(bufferTimeSpan) {
         return source.lift(new BufferTimeOperator(bufferTimeSpan, bufferCreationInterval, maxBufferSize, scheduler));
     };
 }
-var BufferTimeOperator = /*@__PURE__*/ (function () {
-    function BufferTimeOperator(bufferTimeSpan, bufferCreationInterval, maxBufferSize, scheduler) {
+class BufferTimeOperator {
+    constructor(bufferTimeSpan, bufferCreationInterval, maxBufferSize, scheduler) {
         this.bufferTimeSpan = bufferTimeSpan;
         this.bufferCreationInterval = bufferCreationInterval;
         this.maxBufferSize = maxBufferSize;
         this.scheduler = scheduler;
     }
-    BufferTimeOperator.prototype.call = function (subscriber, source) {
+    call(subscriber, source) {
         return source.subscribe(new BufferTimeSubscriber(subscriber, this.bufferTimeSpan, this.bufferCreationInterval, this.maxBufferSize, this.scheduler));
-    };
-    return BufferTimeOperator;
-}());
-var Context = /*@__PURE__*/ (function () {
-    function Context() {
+    }
+}
+class Context {
+    constructor() {
         this.buffer = [];
     }
-    return Context;
-}());
-var BufferTimeSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(BufferTimeSubscriber, _super);
-    function BufferTimeSubscriber(destination, bufferTimeSpan, bufferCreationInterval, maxBufferSize, scheduler) {
-        var _this = _super.call(this, destination) || this;
-        _this.bufferTimeSpan = bufferTimeSpan;
-        _this.bufferCreationInterval = bufferCreationInterval;
-        _this.maxBufferSize = maxBufferSize;
-        _this.scheduler = scheduler;
-        _this.contexts = [];
-        var context = _this.openContext();
-        _this.timespanOnly = bufferCreationInterval == null || bufferCreationInterval < 0;
-        if (_this.timespanOnly) {
-            var timeSpanOnlyState = { subscriber: _this, context: context, bufferTimeSpan: bufferTimeSpan };
-            _this.add(context.closeAction = scheduler.schedule(dispatchBufferTimeSpanOnly, bufferTimeSpan, timeSpanOnlyState));
+}
+class BufferTimeSubscriber extends Subscriber {
+    constructor(destination, bufferTimeSpan, bufferCreationInterval, maxBufferSize, scheduler) {
+        super(destination);
+        this.bufferTimeSpan = bufferTimeSpan;
+        this.bufferCreationInterval = bufferCreationInterval;
+        this.maxBufferSize = maxBufferSize;
+        this.scheduler = scheduler;
+        this.contexts = [];
+        const context = this.openContext();
+        this.timespanOnly = bufferCreationInterval == null || bufferCreationInterval < 0;
+        if (this.timespanOnly) {
+            const timeSpanOnlyState = { subscriber: this, context, bufferTimeSpan };
+            this.add(context.closeAction = scheduler.schedule(dispatchBufferTimeSpanOnly, bufferTimeSpan, timeSpanOnlyState));
         }
         else {
-            var closeState = { subscriber: _this, context: context };
-            var creationState = { bufferTimeSpan: bufferTimeSpan, bufferCreationInterval: bufferCreationInterval, subscriber: _this, scheduler: scheduler };
-            _this.add(context.closeAction = scheduler.schedule(dispatchBufferClose, bufferTimeSpan, closeState));
-            _this.add(scheduler.schedule(dispatchBufferCreation, bufferCreationInterval, creationState));
+            const closeState = { subscriber: this, context };
+            const creationState = { bufferTimeSpan, bufferCreationInterval, subscriber: this, scheduler };
+            this.add(context.closeAction = scheduler.schedule(dispatchBufferClose, bufferTimeSpan, closeState));
+            this.add(scheduler.schedule(dispatchBufferCreation, bufferCreationInterval, creationState));
         }
-        return _this;
     }
-    BufferTimeSubscriber.prototype._next = function (value) {
-        var contexts = this.contexts;
-        var len = contexts.length;
-        var filledBufferContext;
-        for (var i = 0; i < len; i++) {
-            var context_1 = contexts[i];
-            var buffer = context_1.buffer;
+    _next(value) {
+        const contexts = this.contexts;
+        const len = contexts.length;
+        let filledBufferContext;
+        for (let i = 0; i < len; i++) {
+            const context = contexts[i];
+            const buffer = context.buffer;
             buffer.push(value);
             if (buffer.length == this.maxBufferSize) {
-                filledBufferContext = context_1;
+                filledBufferContext = context;
             }
         }
         if (filledBufferContext) {
             this.onBufferFull(filledBufferContext);
         }
-    };
-    BufferTimeSubscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.contexts.length = 0;
-        _super.prototype._error.call(this, err);
-    };
-    BufferTimeSubscriber.prototype._complete = function () {
-        var _a = this, contexts = _a.contexts, destination = _a.destination;
+        super._error(err);
+    }
+    _complete() {
+        const { contexts, destination } = this;
         while (contexts.length > 0) {
-            var context_2 = contexts.shift();
-            destination.next(context_2.buffer);
+            const context = contexts.shift();
+            destination.next(context.buffer);
         }
-        _super.prototype._complete.call(this);
-    };
-    BufferTimeSubscriber.prototype._unsubscribe = function () {
+        super._complete();
+    }
+    _unsubscribe() {
         this.contexts = null;
-    };
-    BufferTimeSubscriber.prototype.onBufferFull = function (context) {
+    }
+    onBufferFull(context) {
         this.closeContext(context);
-        var closeAction = context.closeAction;
+        const closeAction = context.closeAction;
         closeAction.unsubscribe();
         this.remove(closeAction);
         if (!this.closed && this.timespanOnly) {
             context = this.openContext();
-            var bufferTimeSpan = this.bufferTimeSpan;
-            var timeSpanOnlyState = { subscriber: this, context: context, bufferTimeSpan: bufferTimeSpan };
+            const bufferTimeSpan = this.bufferTimeSpan;
+            const timeSpanOnlyState = { subscriber: this, context, bufferTimeSpan };
             this.add(context.closeAction = this.scheduler.schedule(dispatchBufferTimeSpanOnly, bufferTimeSpan, timeSpanOnlyState));
         }
-    };
-    BufferTimeSubscriber.prototype.openContext = function () {
-        var context = new Context();
+    }
+    openContext() {
+        const context = new Context();
         this.contexts.push(context);
         return context;
-    };
-    BufferTimeSubscriber.prototype.closeContext = function (context) {
+    }
+    closeContext(context) {
         this.destination.next(context.buffer);
-        var contexts = this.contexts;
-        var spliceIndex = contexts ? contexts.indexOf(context) : -1;
+        const contexts = this.contexts;
+        const spliceIndex = contexts ? contexts.indexOf(context) : -1;
         if (spliceIndex >= 0) {
             contexts.splice(contexts.indexOf(context), 1);
         }
-    };
-    return BufferTimeSubscriber;
-}(Subscriber));
+    }
+}
 function dispatchBufferTimeSpanOnly(state) {
-    var subscriber = state.subscriber;
-    var prevContext = state.context;
+    const subscriber = state.subscriber;
+    const prevContext = state.context;
     if (prevContext) {
         subscriber.closeContext(prevContext);
     }
@@ -133,16 +126,16 @@ function dispatchBufferTimeSpanOnly(state) {
     }
 }
 function dispatchBufferCreation(state) {
-    var bufferCreationInterval = state.bufferCreationInterval, bufferTimeSpan = state.bufferTimeSpan, subscriber = state.subscriber, scheduler = state.scheduler;
-    var context = subscriber.openContext();
-    var action = this;
+    const { bufferCreationInterval, bufferTimeSpan, subscriber, scheduler } = state;
+    const context = subscriber.openContext();
+    const action = this;
     if (!subscriber.closed) {
-        subscriber.add(context.closeAction = scheduler.schedule(dispatchBufferClose, bufferTimeSpan, { subscriber: subscriber, context: context }));
+        subscriber.add(context.closeAction = scheduler.schedule(dispatchBufferClose, bufferTimeSpan, { subscriber, context }));
         action.schedule(state, bufferCreationInterval);
     }
 }
 function dispatchBufferClose(arg) {
-    var subscriber = arg.subscriber, context = arg.context;
+    const { subscriber, context } = arg;
     subscriber.closeContext(context);
 }
 //# sourceMappingURL=bufferTime.js.map
