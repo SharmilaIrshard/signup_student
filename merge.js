@@ -1,5 +1,4 @@
-import { merge as mergeStatic } from '../observable/merge';
-export function merge(...observables) {
-    return (source) => source.lift.call(mergeStatic(source, ...observables));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/observable/merge");
 //# sourceMappingURL=merge.js.map

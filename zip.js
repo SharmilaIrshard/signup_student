@@ -1,7 +1,4 @@
-import { zip as zipStatic } from '../observable/zip';
-export function zip(...observables) {
-    return function zipOperatorFunction(source) {
-        return source.lift.call(zipStatic(source, ...observables));
-    };
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/observable/zip");
 //# sourceMappingURL=zip.js.map

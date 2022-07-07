@@ -1,5 +1,4 @@
-import { concat as concatStatic } from '../observable/concat';
-export function concat(...observables) {
-    return (source) => source.lift.call(concatStatic(source, ...observables));
-}
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require("rxjs-compat/add/observable/concat");
 //# sourceMappingURL=concat.js.map
