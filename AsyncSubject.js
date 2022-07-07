@@ -1,17 +1,13 @@
-/** PURE_IMPORTS_START tslib,_Subject,_Subscription PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { Subject } from './Subject';
 import { Subscription } from './Subscription';
-var AsyncSubject = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(AsyncSubject, _super);
-    function AsyncSubject() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.value = null;
-        _this.hasNext = false;
-        _this.hasCompleted = false;
-        return _this;
+export class AsyncSubject extends Subject {
+    constructor() {
+        super(...arguments);
+        this.value = null;
+        this.hasNext = false;
+        this.hasCompleted = false;
     }
-    AsyncSubject.prototype._subscribe = function (subscriber) {
+    _subscribe(subscriber) {
         if (this.hasError) {
             subscriber.error(this.thrownError);
             return Subscription.EMPTY;
@@ -21,27 +17,25 @@ var AsyncSubject = /*@__PURE__*/ (function (_super) {
             subscriber.complete();
             return Subscription.EMPTY;
         }
-        return _super.prototype._subscribe.call(this, subscriber);
-    };
-    AsyncSubject.prototype.next = function (value) {
+        return super._subscribe(subscriber);
+    }
+    next(value) {
         if (!this.hasCompleted) {
             this.value = value;
             this.hasNext = true;
         }
-    };
-    AsyncSubject.prototype.error = function (error) {
+    }
+    error(error) {
         if (!this.hasCompleted) {
-            _super.prototype.error.call(this, error);
+            super.error(error);
         }
-    };
-    AsyncSubject.prototype.complete = function () {
+    }
+    complete() {
         this.hasCompleted = true;
         if (this.hasNext) {
-            _super.prototype.next.call(this, this.value);
+            super.next(this.value);
         }
-        _super.prototype.complete.call(this);
-    };
-    return AsyncSubject;
-}(Subject));
-export { AsyncSubject };
+        super.complete();
+    }
+}
 //# sourceMappingURL=AsyncSubject.js.map

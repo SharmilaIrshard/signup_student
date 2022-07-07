@@ -1,10 +1,9 @@
-/** PURE_IMPORTS_START _util_isArray,_util_isObject,_util_isFunction,_util_UnsubscriptionError PURE_IMPORTS_END */
 import { isArray } from './util/isArray';
 import { isObject } from './util/isObject';
 import { isFunction } from './util/isFunction';
 import { UnsubscriptionError } from './util/UnsubscriptionError';
-var Subscription = /*@__PURE__*/ (function () {
-    function Subscription(unsubscribe) {
+export class Subscription {
+    constructor(unsubscribe) {
         this.closed = false;
         this._parentOrParents = null;
         this._subscriptions = null;
@@ -13,12 +12,12 @@ var Subscription = /*@__PURE__*/ (function () {
             this._unsubscribe = unsubscribe;
         }
     }
-    Subscription.prototype.unsubscribe = function () {
-        var errors;
+    unsubscribe() {
+        let errors;
         if (this.closed) {
             return;
         }
-        var _a = this, _parentOrParents = _a._parentOrParents, _ctorUnsubscribe = _a._ctorUnsubscribe, _unsubscribe = _a._unsubscribe, _subscriptions = _a._subscriptions;
+        let { _parentOrParents, _ctorUnsubscribe, _unsubscribe, _subscriptions } = this;
         this.closed = true;
         this._parentOrParents = null;
         this._subscriptions = null;
@@ -26,9 +25,9 @@ var Subscription = /*@__PURE__*/ (function () {
             _parentOrParents.remove(this);
         }
         else if (_parentOrParents !== null) {
-            for (var index = 0; index < _parentOrParents.length; ++index) {
-                var parent_1 = _parentOrParents[index];
-                parent_1.remove(this);
+            for (let index = 0; index < _parentOrParents.length; ++index) {
+                const parent = _parentOrParents[index];
+                parent.remove(this);
             }
         }
         if (isFunction(_unsubscribe)) {
@@ -43,10 +42,10 @@ var Subscription = /*@__PURE__*/ (function () {
             }
         }
         if (isArray(_subscriptions)) {
-            var index = -1;
-            var len = _subscriptions.length;
+            let index = -1;
+            let len = _subscriptions.length;
             while (++index < len) {
-                var sub = _subscriptions[index];
+                const sub = _subscriptions[index];
                 if (isObject(sub)) {
                     try {
                         sub.unsubscribe();
@@ -66,9 +65,9 @@ var Subscription = /*@__PURE__*/ (function () {
         if (errors) {
             throw new UnsubscriptionError(errors);
         }
-    };
-    Subscription.prototype.add = function (teardown) {
-        var subscription = teardown;
+    }
+    add(teardown) {
+        let subscription = teardown;
         if (!teardown) {
             return Subscription.EMPTY;
         }
@@ -84,7 +83,7 @@ var Subscription = /*@__PURE__*/ (function () {
                     return subscription;
                 }
                 else if (!(subscription instanceof Subscription)) {
-                    var tmp = subscription;
+                    const tmp = subscription;
                     subscription = new Subscription();
                     subscription._subscriptions = [tmp];
                 }
@@ -93,7 +92,7 @@ var Subscription = /*@__PURE__*/ (function () {
                 throw new Error('unrecognized teardown ' + teardown + ' added to Subscription.');
             }
         }
-        var _parentOrParents = subscription._parentOrParents;
+        let { _parentOrParents } = subscription;
         if (_parentOrParents === null) {
             subscription._parentOrParents = this;
         }
@@ -109,7 +108,7 @@ var Subscription = /*@__PURE__*/ (function () {
         else {
             return subscription;
         }
-        var subscriptions = this._subscriptions;
+        const subscriptions = this._subscriptions;
         if (subscriptions === null) {
             this._subscriptions = [subscription];
         }
@@ -117,24 +116,22 @@ var Subscription = /*@__PURE__*/ (function () {
             subscriptions.push(subscription);
         }
         return subscription;
-    };
-    Subscription.prototype.remove = function (subscription) {
-        var subscriptions = this._subscriptions;
+    }
+    remove(subscription) {
+        const subscriptions = this._subscriptions;
         if (subscriptions) {
-            var subscriptionIndex = subscriptions.indexOf(subscription);
+            const subscriptionIndex = subscriptions.indexOf(subscription);
             if (subscriptionIndex !== -1) {
                 subscriptions.splice(subscriptionIndex, 1);
             }
         }
-    };
-    Subscription.EMPTY = (function (empty) {
-        empty.closed = true;
-        return empty;
-    }(new Subscription()));
-    return Subscription;
-}());
-export { Subscription };
+    }
+}
+Subscription.EMPTY = (function (empty) {
+    empty.closed = true;
+    return empty;
+}(new Subscription()));
 function flattenUnsubscriptionErrors(errors) {
-    return errors.reduce(function (errs, err) { return errs.concat((err instanceof UnsubscriptionError) ? err.errors : err); }, []);
+    return errors.reduce((errs, err) => errs.concat((err instanceof UnsubscriptionError) ? err.errors : err), []);
 }
 //# sourceMappingURL=Subscription.js.map

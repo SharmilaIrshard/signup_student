@@ -1,10 +1,9 @@
-/** PURE_IMPORTS_START _config,_util_hostReportError PURE_IMPORTS_END */
 import { config } from './config';
 import { hostReportError } from './util/hostReportError';
-export var empty = {
+export const empty = {
     closed: true,
-    next: function (value) { },
-    error: function (err) {
+    next(value) { },
+    error(err) {
         if (config.useDeprecatedSynchronousErrorHandling) {
             throw err;
         }
@@ -12,6 +11,6 @@ export var empty = {
             hostReportError(err);
         }
     },
-    complete: function () { }
+    complete() { }
 };
 //# sourceMappingURL=Observer.js.map

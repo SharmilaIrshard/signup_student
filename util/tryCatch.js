@@ -1,6 +1,5 @@
-/** PURE_IMPORTS_START _errorObject PURE_IMPORTS_END */
 import { errorObject } from './errorObject';
-var tryCatchTarget;
+let tryCatchTarget;
 function tryCatcher() {
     errorObject.e = undefined;
     try {

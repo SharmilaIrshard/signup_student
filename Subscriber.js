@@ -1,107 +1,100 @@
-/** PURE_IMPORTS_START tslib,_util_isFunction,_Observer,_Subscription,_internal_symbol_rxSubscriber,_config,_util_hostReportError PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
 import { isFunction } from './util/isFunction';
 import { empty as emptyObserver } from './Observer';
 import { Subscription } from './Subscription';
 import { rxSubscriber as rxSubscriberSymbol } from '../internal/symbol/rxSubscriber';
 import { config } from './config';
 import { hostReportError } from './util/hostReportError';
-var Subscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(Subscriber, _super);
-    function Subscriber(destinationOrNext, error, complete) {
-        var _this = _super.call(this) || this;
-        _this.syncErrorValue = null;
-        _this.syncErrorThrown = false;
-        _this.syncErrorThrowable = false;
-        _this.isStopped = false;
+export class Subscriber extends Subscription {
+    constructor(destinationOrNext, error, complete) {
+        super();
+        this.syncErrorValue = null;
+        this.syncErrorThrown = false;
+        this.syncErrorThrowable = false;
+        this.isStopped = false;
         switch (arguments.length) {
             case 0:
-                _this.destination = emptyObserver;
+                this.destination = emptyObserver;
                 break;
             case 1:
                 if (!destinationOrNext) {
-                    _this.destination = emptyObserver;
+                    this.destination = emptyObserver;
                     break;
                 }
                 if (typeof destinationOrNext === 'object') {
                     if (destinationOrNext instanceof Subscriber) {
-                        _this.syncErrorThrowable = destinationOrNext.syncErrorThrowable;
-                        _this.destination = destinationOrNext;
-                        destinationOrNext.add(_this);
+                        this.syncErrorThrowable = destinationOrNext.syncErrorThrowable;
+                        this.destination = destinationOrNext;
+                        destinationOrNext.add(this);
                     }
                     else {
-                        _this.syncErrorThrowable = true;
-                        _this.destination = new SafeSubscriber(_this, destinationOrNext);
+                        this.syncErrorThrowable = true;
+                        this.destination = new SafeSubscriber(this, destinationOrNext);
                     }
                     break;
                 }
             default:
-                _this.syncErrorThrowable = true;
-                _this.destination = new SafeSubscriber(_this, destinationOrNext, error, complete);
+                this.syncErrorThrowable = true;
+                this.destination = new SafeSubscriber(this, destinationOrNext, error, complete);
                 break;
         }
-        return _this;
     }
-    Subscriber.prototype[rxSubscriberSymbol] = function () { return this; };
-    Subscriber.create = function (next, error, complete) {
-        var subscriber = new Subscriber(next, error, complete);
+    [rxSubscriberSymbol]() { return this; }
+    static create(next, error, complete) {
+        const subscriber = new Subscriber(next, error, complete);
         subscriber.syncErrorThrowable = false;
         return subscriber;
-    };
-    Subscriber.prototype.next = function (value) {
+    }
+    next(value) {
         if (!this.isStopped) {
             this._next(value);
         }
-    };
-    Subscriber.prototype.error = function (err) {
+    }
+    error(err) {
         if (!this.isStopped) {
             this.isStopped = true;
             this._error(err);
         }
-    };
-    Subscriber.prototype.complete = function () {
+    }
+    complete() {
         if (!this.isStopped) {
             this.isStopped = true;
             this._complete();
         }
-    };
-    Subscriber.prototype.unsubscribe = function () {
+    }
+    unsubscribe() {
         if (this.closed) {
             return;
         }
         this.isStopped = true;
-        _super.prototype.unsubscribe.call(this);
-    };
-    Subscriber.prototype._next = function (value) {
+        super.unsubscribe();
+    }
+    _next(value) {
         this.destination.next(value);
-    };
-    Subscriber.prototype._error = function (err) {
+    }
+    _error(err) {
         this.destination.error(err);
         this.unsubscribe();
-    };
-    Subscriber.prototype._complete = function () {
+    }
+    _complete() {
         this.destination.complete();
         this.unsubscribe();
-    };
-    Subscriber.prototype._unsubscribeAndRecycle = function () {
-        var _parentOrParents = this._parentOrParents;
+    }
+    _unsubscribeAndRecycle() {
+        const { _parentOrParents } = this;
         this._parentOrParents = null;
         this.unsubscribe();
         this.closed = false;
         this.isStopped = false;
         this._parentOrParents = _parentOrParents;
         return this;
-    };
-    return Subscriber;
-}(Subscription));
-export { Subscriber };
-var SafeSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(SafeSubscriber, _super);
-    function SafeSubscriber(_parentSubscriber, observerOrNext, error, complete) {
-        var _this = _super.call(this) || this;
-        _this._parentSubscriber = _parentSubscriber;
-        var next;
-        var context = _this;
+    }
+}
+export class SafeSubscriber extends Subscriber {
+    constructor(_parentSubscriber, observerOrNext, error, complete) {
+        super();
+        this._parentSubscriber = _parentSubscriber;
+        let next;
+        let context = this;
         if (isFunction(observerOrNext)) {
             next = observerOrNext;
         }
@@ -112,20 +105,19 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
             if (observerOrNext !== emptyObserver) {
                 context = Object.create(observerOrNext);
                 if (isFunction(context.unsubscribe)) {
-                    _this.add(context.unsubscribe.bind(context));
+                    this.add(context.unsubscribe.bind(context));
                 }
-                context.unsubscribe = _this.unsubscribe.bind(_this);
+                context.unsubscribe = this.unsubscribe.bind(this);
             }
         }
-        _this._context = context;
-        _this._next = next;
-        _this._error = error;
-        _this._complete = complete;
-        return _this;
+        this._context = context;
+        this._next = next;
+        this._error = error;
+        this._complete = complete;
     }
-    SafeSubscriber.prototype.next = function (value) {
+    next(value) {
         if (!this.isStopped && this._next) {
-            var _parentSubscriber = this._parentSubscriber;
+            const { _parentSubscriber } = this;
             if (!config.useDeprecatedSynchronousErrorHandling || !_parentSubscriber.syncErrorThrowable) {
                 this.__tryOrUnsub(this._next, value);
             }
@@ -133,11 +125,11 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
                 this.unsubscribe();
             }
         }
-    };
-    SafeSubscriber.prototype.error = function (err) {
+    }
+    error(err) {
         if (!this.isStopped) {
-            var _parentSubscriber = this._parentSubscriber;
-            var useDeprecatedSynchronousErrorHandling = config.useDeprecatedSynchronousErrorHandling;
+            const { _parentSubscriber } = this;
+            const { useDeprecatedSynchronousErrorHandling } = config;
             if (this._error) {
                 if (!useDeprecatedSynchronousErrorHandling || !_parentSubscriber.syncErrorThrowable) {
                     this.__tryOrUnsub(this._error, err);
@@ -166,13 +158,12 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
                 this.unsubscribe();
             }
         }
-    };
-    SafeSubscriber.prototype.complete = function () {
-        var _this = this;
+    }
+    complete() {
         if (!this.isStopped) {
-            var _parentSubscriber = this._parentSubscriber;
+            const { _parentSubscriber } = this;
             if (this._complete) {
-                var wrappedComplete = function () { return _this._complete.call(_this._context); };
+                const wrappedComplete = () => this._complete.call(this._context);
                 if (!config.useDeprecatedSynchronousErrorHandling || !_parentSubscriber.syncErrorThrowable) {
                     this.__tryOrUnsub(wrappedComplete);
                     this.unsubscribe();
@@ -186,8 +177,8 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
                 this.unsubscribe();
             }
         }
-    };
-    SafeSubscriber.prototype.__tryOrUnsub = function (fn, value) {
+    }
+    __tryOrUnsub(fn, value) {
         try {
             fn.call(this._context, value);
         }
@@ -200,8 +191,8 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
                 hostReportError(err);
             }
         }
-    };
-    SafeSubscriber.prototype.__tryOrSetError = function (parent, fn, value) {
+    }
+    __tryOrSetError(parent, fn, value) {
         if (!config.useDeprecatedSynchronousErrorHandling) {
             throw new Error('bad call');
         }
@@ -220,14 +211,12 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
             }
         }
         return false;
-    };
-    SafeSubscriber.prototype._unsubscribe = function () {
-        var _parentSubscriber = this._parentSubscriber;
+    }
+    _unsubscribe() {
+        const { _parentSubscriber } = this;
         this._context = null;
         this._parentSubscriber = null;
         _parentSubscriber.unsubscribe();
-    };
-    return SafeSubscriber;
-}(Subscriber));
-export { SafeSubscriber };
+    }
+}
 //# sourceMappingURL=Subscriber.js.map

@@ -1,25 +1,24 @@
-/** PURE_IMPORTS_START _util_canReportError,_util_toSubscriber,_symbol_observable,_util_pipe,_config PURE_IMPORTS_END */
 import { canReportError } from './util/canReportError';
 import { toSubscriber } from './util/toSubscriber';
 import { observable as Symbol_observable } from './symbol/observable';
 import { pipeFromArray } from './util/pipe';
 import { config } from './config';
-var Observable = /*@__PURE__*/ (function () {
-    function Observable(subscribe) {
+export class Observable {
+    constructor(subscribe) {
         this._isScalar = false;
         if (subscribe) {
             this._subscribe = subscribe;
         }
     }
-    Observable.prototype.lift = function (operator) {
-        var observable = new Observable();
+    lift(operator) {
+        const observable = new Observable();
         observable.source = this;
         observable.operator = operator;
         return observable;
-    };
-    Observable.prototype.subscribe = function (observerOrNext, error, complete) {
-        var operator = this.operator;
-        var sink = toSubscriber(observerOrNext, error, complete);
+    }
+    subscribe(observerOrNext, error, complete) {
+        const { operator } = this;
+        const sink = toSubscriber(observerOrNext, error, complete);
         if (operator) {
             sink.add(operator.call(sink, this.source));
         }
@@ -37,8 +36,8 @@ var Observable = /*@__PURE__*/ (function () {
             }
         }
         return sink;
-    };
-    Observable.prototype._trySubscribe = function (sink) {
+    }
+    _trySubscribe(sink) {
         try {
             return this._subscribe(sink);
         }
@@ -54,13 +53,12 @@ var Observable = /*@__PURE__*/ (function () {
                 console.warn(err);
             }
         }
-    };
-    Observable.prototype.forEach = function (next, promiseCtor) {
-        var _this = this;
+    }
+    forEach(next, promiseCtor) {
         promiseCtor = getPromiseCtor(promiseCtor);
-        return new promiseCtor(function (resolve, reject) {
-            var subscription;
-            subscription = _this.subscribe(function (value) {
+        return new promiseCtor((resolve, reject) => {
+            let subscription;
+            subscription = this.subscribe((value) => {
                 try {
                     next(value);
                 }
@@ -72,38 +70,31 @@ var Observable = /*@__PURE__*/ (function () {
                 }
             }, reject, resolve);
         });
-    };
-    Observable.prototype._subscribe = function (subscriber) {
-        var source = this.source;
+    }
+    _subscribe(subscriber) {
+        const { source } = this;
         return source && source.subscribe(subscriber);
-    };
-    Observable.prototype[Symbol_observable] = function () {
+    }
+    [Symbol_observable]() {
         return this;
-    };
-    Observable.prototype.pipe = function () {
-        var operations = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            operations[_i] = arguments[_i];
-        }
+    }
+    pipe(...operations) {
         if (operations.length === 0) {
             return this;
         }
         return pipeFromArray(operations)(this);
-    };
-    Observable.prototype.toPromise = function (promiseCtor) {
-        var _this = this;
+    }
+    toPromise(promiseCtor) {
         promiseCtor = getPromiseCtor(promiseCtor);
-        return new promiseCtor(function (resolve, reject) {
-            var value;
-            _this.subscribe(function (x) { return value = x; }, function (err) { return reject(err); }, function () { return resolve(value); });
+        return new promiseCtor((resolve, reject) => {
+            let value;
+            this.subscribe((x) => value = x, (err) => reject(err), () => resolve(value));
         });
-    };
-    Observable.create = function (subscribe) {
-        return new Observable(subscribe);
-    };
-    return Observable;
-}());
-export { Observable };
+    }
+}
+Observable.create = (subscribe) => {
+    return new Observable(subscribe);
+};
 function getPromiseCtor(promiseCtor) {
     if (!promiseCtor) {
         promiseCtor = config.Promise || Promise;
