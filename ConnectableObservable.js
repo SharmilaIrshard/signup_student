@@ -1,12 +1,25 @@
-/** PURE_IMPORTS_START tslib,_Subject,_Observable,_Subscriber,_Subscription,_operators_refCount PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
-import { SubjectSubscriber } from '../Subject';
-import { Observable } from '../Observable';
-import { Subscriber } from '../Subscriber';
-import { Subscription } from '../Subscription';
-import { refCount as higherOrderRefCount } from '../operators/refCount';
-var ConnectableObservable = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(ConnectableObservable, _super);
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var Subject_1 = require("../Subject");
+var Observable_1 = require("../Observable");
+var Subscriber_1 = require("../Subscriber");
+var Subscription_1 = require("../Subscription");
+var refCount_1 = require("../operators/refCount");
+var ConnectableObservable = (function (_super) {
+    __extends(ConnectableObservable, _super);
     function ConnectableObservable(source, subjectFactory) {
         var _this = _super.call(this) || this;
         _this.source = source;
@@ -29,23 +42,23 @@ var ConnectableObservable = /*@__PURE__*/ (function (_super) {
         var connection = this._connection;
         if (!connection) {
             this._isComplete = false;
-            connection = this._connection = new Subscription();
+            connection = this._connection = new Subscription_1.Subscription();
             connection.add(this.source
                 .subscribe(new ConnectableSubscriber(this.getSubject(), this)));
             if (connection.closed) {
                 this._connection = null;
-                connection = Subscription.EMPTY;
+                connection = Subscription_1.Subscription.EMPTY;
             }
         }
         return connection;
     };
     ConnectableObservable.prototype.refCount = function () {
-        return higherOrderRefCount()(this);
+        return refCount_1.refCount()(this);
     };
     return ConnectableObservable;
-}(Observable));
-export { ConnectableObservable };
-export var connectableObservableDescriptor = /*@__PURE__*/ (function () {
+}(Observable_1.Observable));
+exports.ConnectableObservable = ConnectableObservable;
+exports.connectableObservableDescriptor = (function () {
     var connectableProto = ConnectableObservable.prototype;
     return {
         operator: { value: null },
@@ -59,8 +72,8 @@ export var connectableObservableDescriptor = /*@__PURE__*/ (function () {
         refCount: { value: connectableProto.refCount }
     };
 })();
-var ConnectableSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(ConnectableSubscriber, _super);
+var ConnectableSubscriber = (function (_super) {
+    __extends(ConnectableSubscriber, _super);
     function ConnectableSubscriber(destination, connectable) {
         var _this = _super.call(this, destination) || this;
         _this.connectable = connectable;
@@ -89,8 +102,8 @@ var ConnectableSubscriber = /*@__PURE__*/ (function (_super) {
         }
     };
     return ConnectableSubscriber;
-}(SubjectSubscriber));
-var RefCountOperator = /*@__PURE__*/ (function () {
+}(Subject_1.SubjectSubscriber));
+var RefCountOperator = (function () {
     function RefCountOperator(connectable) {
         this.connectable = connectable;
     }
@@ -106,8 +119,8 @@ var RefCountOperator = /*@__PURE__*/ (function () {
     };
     return RefCountOperator;
 }());
-var RefCountSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(RefCountSubscriber, _super);
+var RefCountSubscriber = (function (_super) {
+    __extends(RefCountSubscriber, _super);
     function RefCountSubscriber(destination, connectable) {
         var _this = _super.call(this, destination) || this;
         _this.connectable = connectable;
@@ -138,5 +151,5 @@ var RefCountSubscriber = /*@__PURE__*/ (function (_super) {
         }
     };
     return RefCountSubscriber;
-}(Subscriber));
+}(Subscriber_1.Subscriber));
 //# sourceMappingURL=ConnectableObservable.js.map

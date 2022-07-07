@@ -1,23 +1,36 @@
-/** PURE_IMPORTS_START tslib,_.._util_root,_.._Observable,_.._Subscriber,_.._operators_map PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
-import { root } from '../../util/root';
-import { Observable } from '../../Observable';
-import { Subscriber } from '../../Subscriber';
-import { map } from '../../operators/map';
-function getCORSRequest() {
-    if (root.XMLHttpRequest) {
-        return new root.XMLHttpRequest();
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     }
-    else if (!!root.XDomainRequest) {
-        return new root.XDomainRequest();
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var root_1 = require("../../util/root");
+var Observable_1 = require("../../Observable");
+var Subscriber_1 = require("../../Subscriber");
+var map_1 = require("../../operators/map");
+function getCORSRequest() {
+    if (root_1.root.XMLHttpRequest) {
+        return new root_1.root.XMLHttpRequest();
+    }
+    else if (!!root_1.root.XDomainRequest) {
+        return new root_1.root.XDomainRequest();
     }
     else {
         throw new Error('CORS is not supported by your browser');
     }
 }
 function getXMLHttpRequest() {
-    if (root.XMLHttpRequest) {
-        return new root.XMLHttpRequest();
+    if (root_1.root.XMLHttpRequest) {
+        return new root_1.root.XMLHttpRequest();
     }
     else {
         var progId = void 0;
@@ -26,40 +39,43 @@ function getXMLHttpRequest() {
             for (var i = 0; i < 3; i++) {
                 try {
                     progId = progIds[i];
-                    if (new root.ActiveXObject(progId)) {
+                    if (new root_1.root.ActiveXObject(progId)) {
                         break;
                     }
                 }
                 catch (e) {
                 }
             }
-            return new root.ActiveXObject(progId);
+            return new root_1.root.ActiveXObject(progId);
         }
         catch (e) {
             throw new Error('XMLHttpRequest is not supported by your browser');
         }
     }
 }
-export function ajaxGet(url, headers) {
-    if (headers === void 0) {
-        headers = null;
-    }
+function ajaxGet(url, headers) {
+    if (headers === void 0) { headers = null; }
     return new AjaxObservable({ method: 'GET', url: url, headers: headers });
 }
-export function ajaxPost(url, body, headers) {
+exports.ajaxGet = ajaxGet;
+function ajaxPost(url, body, headers) {
     return new AjaxObservable({ method: 'POST', url: url, body: body, headers: headers });
 }
-export function ajaxDelete(url, headers) {
+exports.ajaxPost = ajaxPost;
+function ajaxDelete(url, headers) {
     return new AjaxObservable({ method: 'DELETE', url: url, headers: headers });
 }
-export function ajaxPut(url, body, headers) {
+exports.ajaxDelete = ajaxDelete;
+function ajaxPut(url, body, headers) {
     return new AjaxObservable({ method: 'PUT', url: url, body: body, headers: headers });
 }
-export function ajaxPatch(url, body, headers) {
+exports.ajaxPut = ajaxPut;
+function ajaxPatch(url, body, headers) {
     return new AjaxObservable({ method: 'PATCH', url: url, body: body, headers: headers });
 }
-var mapResponse = /*@__PURE__*/ map(function (x, index) { return x.response; });
-export function ajaxGetJSON(url, headers) {
+exports.ajaxPatch = ajaxPatch;
+var mapResponse = map_1.map(function (x, index) { return x.response; });
+function ajaxGetJSON(url, headers) {
     return mapResponse(new AjaxObservable({
         method: 'GET',
         url: url,
@@ -67,8 +83,9 @@ export function ajaxGetJSON(url, headers) {
         headers: headers
     }));
 }
-var AjaxObservable = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(AjaxObservable, _super);
+exports.ajaxGetJSON = ajaxGetJSON;
+var AjaxObservable = (function (_super) {
+    __extends(AjaxObservable, _super);
     function AjaxObservable(urlOrRequest) {
         var _this = _super.call(this) || this;
         var request = {
@@ -112,10 +129,10 @@ var AjaxObservable = /*@__PURE__*/ (function (_super) {
         return create;
     })();
     return AjaxObservable;
-}(Observable));
-export { AjaxObservable };
-var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(AjaxSubscriber, _super);
+}(Observable_1.Observable));
+exports.AjaxObservable = AjaxObservable;
+var AjaxSubscriber = (function (_super) {
+    __extends(AjaxSubscriber, _super);
     function AjaxSubscriber(destination, request) {
         var _this = _super.call(this, destination) || this;
         _this.request = request;
@@ -125,7 +142,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
             headers['X-Requested-With'] = 'XMLHttpRequest';
         }
         var contentTypeHeader = _this.getHeader(headers, 'Content-Type');
-        if (!contentTypeHeader && !(root.FormData && request.body instanceof root.FormData) && typeof request.body !== 'undefined') {
+        if (!contentTypeHeader && !(root_1.root.FormData && request.body instanceof root_1.root.FormData) && typeof request.body !== 'undefined') {
             headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
         }
         request.body = _this.serializeBody(request.body, _this.getHeader(request.headers, 'Content-Type'));
@@ -178,7 +195,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
         if (!body || typeof body === 'string') {
             return body;
         }
-        else if (root.FormData && body instanceof root.FormData) {
+        else if (root_1.root.FormData && body instanceof root_1.root.FormData) {
             return body;
         }
         if (contentType) {
@@ -220,7 +237,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
             }
             var error;
             try {
-                error = new AjaxTimeoutError(this, request);
+                error = new exports.AjaxTimeoutError(this, request);
             }
             catch (err) {
                 error = err;
@@ -238,7 +255,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
                     var progressSubscriber = xhrProgress_1.progressSubscriber;
                     progressSubscriber.next(e);
                 };
-                if (root.XDomainRequest) {
+                if (root_1.root.XDomainRequest) {
                     xhr.onprogress = xhrProgress_1;
                 }
                 else {
@@ -254,7 +271,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
                 }
                 var error;
                 try {
-                    error = new AjaxError('ajax error', this, request);
+                    error = new exports.AjaxError('ajax error', this, request);
                 }
                 catch (err) {
                     error = err;
@@ -294,7 +311,7 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
                     }
                     var error = void 0;
                     try {
-                        error = new AjaxError('ajax error ' + status_1, this, request);
+                        error = new exports.AjaxError('ajax error ' + status_1, this, request);
                     }
                     catch (err) {
                         error = err;
@@ -316,9 +333,9 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
         _super.prototype.unsubscribe.call(this);
     };
     return AjaxSubscriber;
-}(Subscriber));
-export { AjaxSubscriber };
-var AjaxResponse = /*@__PURE__*/ (function () {
+}(Subscriber_1.Subscriber));
+exports.AjaxSubscriber = AjaxSubscriber;
+var AjaxResponse = (function () {
     function AjaxResponse(originalEvent, xhr, request) {
         this.originalEvent = originalEvent;
         this.xhr = xhr;
@@ -329,8 +346,8 @@ var AjaxResponse = /*@__PURE__*/ (function () {
     }
     return AjaxResponse;
 }());
-export { AjaxResponse };
-var AjaxErrorImpl = /*@__PURE__*/ (function () {
+exports.AjaxResponse = AjaxResponse;
+var AjaxErrorImpl = (function () {
     function AjaxErrorImpl(message, xhr, request) {
         Error.call(this);
         this.message = message;
@@ -342,10 +359,10 @@ var AjaxErrorImpl = /*@__PURE__*/ (function () {
         this.response = parseXhrResponse(this.responseType, xhr);
         return this;
     }
-    AjaxErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+    AjaxErrorImpl.prototype = Object.create(Error.prototype);
     return AjaxErrorImpl;
 })();
-export var AjaxError = AjaxErrorImpl;
+exports.AjaxError = AjaxErrorImpl;
 function parseJson(xhr) {
     if ('response' in xhr) {
         return xhr.responseType ? xhr.response : JSON.parse(xhr.response || xhr.responseText || 'null');
@@ -366,9 +383,9 @@ function parseXhrResponse(responseType, xhr) {
     }
 }
 function AjaxTimeoutErrorImpl(xhr, request) {
-    AjaxError.call(this, 'ajax timeout', xhr, request);
+    exports.AjaxError.call(this, 'ajax timeout', xhr, request);
     this.name = 'AjaxTimeoutError';
     return this;
 }
-export var AjaxTimeoutError = AjaxTimeoutErrorImpl;
+exports.AjaxTimeoutError = AjaxTimeoutErrorImpl;
 //# sourceMappingURL=AjaxObservable.js.map

@@ -1,27 +1,51 @@
-/** PURE_IMPORTS_START tslib,_.._Subject,_.._Subscriber,_.._Observable,_.._Subscription,_.._ReplaySubject PURE_IMPORTS_END */
-import * as tslib_1 from "tslib";
-import { Subject, AnonymousSubject } from '../../Subject';
-import { Subscriber } from '../../Subscriber';
-import { Observable } from '../../Observable';
-import { Subscription } from '../../Subscription';
-import { ReplaySubject } from '../../ReplaySubject';
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var Subject_1 = require("../../Subject");
+var Subscriber_1 = require("../../Subscriber");
+var Observable_1 = require("../../Observable");
+var Subscription_1 = require("../../Subscription");
+var ReplaySubject_1 = require("../../ReplaySubject");
 var DEFAULT_WEBSOCKET_CONFIG = {
     url: '',
     deserializer: function (e) { return JSON.parse(e.data); },
     serializer: function (value) { return JSON.stringify(value); },
 };
 var WEBSOCKETSUBJECT_INVALID_ERROR_OBJECT = 'WebSocketSubject.error must be called with an object with an error code, and an optional reason: { code: number, reason: string }';
-var WebSocketSubject = /*@__PURE__*/ (function (_super) {
-    tslib_1.__extends(WebSocketSubject, _super);
+var WebSocketSubject = (function (_super) {
+    __extends(WebSocketSubject, _super);
     function WebSocketSubject(urlConfigOrSource, destination) {
         var _this = _super.call(this) || this;
-        if (urlConfigOrSource instanceof Observable) {
+        if (urlConfigOrSource instanceof Observable_1.Observable) {
             _this.destination = destination;
             _this.source = urlConfigOrSource;
         }
         else {
-            var config = _this._config = tslib_1.__assign({}, DEFAULT_WEBSOCKET_CONFIG);
-            _this._output = new Subject();
+            var config = _this._config = __assign({}, DEFAULT_WEBSOCKET_CONFIG);
+            _this._output = new Subject_1.Subject();
             if (typeof urlConfigOrSource === 'string') {
                 config.url = urlConfigOrSource;
             }
@@ -38,7 +62,7 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
             else if (!config.WebSocketCtor) {
                 throw new Error('no WebSocket constructor can be found');
             }
-            _this.destination = new ReplaySubject();
+            _this.destination = new ReplaySubject_1.ReplaySubject();
         }
         return _this;
     }
@@ -51,13 +75,13 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
     WebSocketSubject.prototype._resetState = function () {
         this._socket = null;
         if (!this.source) {
-            this.destination = new ReplaySubject();
+            this.destination = new ReplaySubject_1.ReplaySubject();
         }
-        this._output = new Subject();
+        this._output = new Subject_1.Subject();
     };
     WebSocketSubject.prototype.multiplex = function (subMsg, unsubMsg, messageFilter) {
         var self = this;
-        return new Observable(function (observer) {
+        return new Observable_1.Observable(function (observer) {
             try {
                 self.next(subMsg());
             }
@@ -103,7 +127,7 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
             observer.error(e);
             return;
         }
-        var subscription = new Subscription(function () {
+        var subscription = new Subscription_1.Subscription(function () {
             _this._socket = null;
             if (socket && socket.readyState === 1) {
                 socket.close();
@@ -121,7 +145,7 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
                 openObserver.next(e);
             }
             var queue = _this.destination;
-            _this.destination = Subscriber.create(function (x) {
+            _this.destination = Subscriber_1.Subscriber.create(function (x) {
                 if (socket.readyState === 1) {
                     try {
                         var serializer = _this._config.serializer;
@@ -151,7 +175,7 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
                 socket.close();
                 _this._resetState();
             });
-            if (queue && queue instanceof ReplaySubject) {
+            if (queue && queue instanceof ReplaySubject_1.ReplaySubject) {
                 subscription.add(queue.subscribe(_this.destination));
             }
         };
@@ -212,6 +236,6 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
         _super.prototype.unsubscribe.call(this);
     };
     return WebSocketSubject;
-}(AnonymousSubject));
-export { WebSocketSubject };
+}(Subject_1.AnonymousSubject));
+exports.WebSocketSubject = WebSocketSubject;
 //# sourceMappingURL=WebSocketSubject.js.map
