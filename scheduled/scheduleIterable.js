@@ -1,28 +1,30 @@
-import { Observable } from '../Observable';
-import { Subscription } from '../Subscription';
-import { iterator as Symbol_iterator } from '../symbol/iterator';
-export function scheduleIterable(input, scheduler) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Observable_1 = require("../Observable");
+var Subscription_1 = require("../Subscription");
+var iterator_1 = require("../symbol/iterator");
+function scheduleIterable(input, scheduler) {
     if (!input) {
         throw new Error('Iterable cannot be null');
     }
-    return new Observable(subscriber => {
-        const sub = new Subscription();
-        let iterator;
-        sub.add(() => {
+    return new Observable_1.Observable(function (subscriber) {
+        var sub = new Subscription_1.Subscription();
+        var iterator;
+        sub.add(function () {
             if (iterator && typeof iterator.return === 'function') {
                 iterator.return();
             }
         });
-        sub.add(scheduler.schedule(() => {
-            iterator = input[Symbol_iterator]();
+        sub.add(scheduler.schedule(function () {
+            iterator = input[iterator_1.iterator]();
             sub.add(scheduler.schedule(function () {
                 if (subscriber.closed) {
                     return;
                 }
-                let value;
-                let done;
+                var value;
+                var done;
                 try {
-                    const result = iterator.next();
+                    var result = iterator.next();
                     value = result.value;
                     done = result.done;
                 }
@@ -42,4 +44,5 @@ export function scheduleIterable(input, scheduler) {
         return sub;
     });
 }
+exports.scheduleIterable = scheduleIterable;
 //# sourceMappingURL=scheduleIterable.js.map

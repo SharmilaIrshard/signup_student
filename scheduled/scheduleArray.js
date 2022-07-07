@@ -1,9 +1,11 @@
-import { Observable } from '../Observable';
-import { Subscription } from '../Subscription';
-export function scheduleArray(input, scheduler) {
-    return new Observable(subscriber => {
-        const sub = new Subscription();
-        let i = 0;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Observable_1 = require("../Observable");
+var Subscription_1 = require("../Subscription");
+function scheduleArray(input, scheduler) {
+    return new Observable_1.Observable(function (subscriber) {
+        var sub = new Subscription_1.Subscription();
+        var i = 0;
         sub.add(scheduler.schedule(function () {
             if (i === input.length) {
                 subscriber.complete();
@@ -17,4 +19,5 @@ export function scheduleArray(input, scheduler) {
         return sub;
     });
 }
+exports.scheduleArray = scheduleArray;
 //# sourceMappingURL=scheduleArray.js.map

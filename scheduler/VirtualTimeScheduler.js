@@ -1,15 +1,34 @@
-import { AsyncAction } from './AsyncAction';
-import { AsyncScheduler } from './AsyncScheduler';
-export class VirtualTimeScheduler extends AsyncScheduler {
-    constructor(SchedulerAction = VirtualAction, maxFrames = Number.POSITIVE_INFINITY) {
-        super(SchedulerAction, () => this.frame);
-        this.maxFrames = maxFrames;
-        this.frame = 0;
-        this.index = -1;
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     }
-    flush() {
-        const { actions, maxFrames } = this;
-        let error, action;
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var AsyncAction_1 = require("./AsyncAction");
+var AsyncScheduler_1 = require("./AsyncScheduler");
+var VirtualTimeScheduler = (function (_super) {
+    __extends(VirtualTimeScheduler, _super);
+    function VirtualTimeScheduler(SchedulerAction, maxFrames) {
+        if (SchedulerAction === void 0) { SchedulerAction = VirtualAction; }
+        if (maxFrames === void 0) { maxFrames = Number.POSITIVE_INFINITY; }
+        var _this = _super.call(this, SchedulerAction, function () { return _this.frame; }) || this;
+        _this.maxFrames = maxFrames;
+        _this.frame = 0;
+        _this.index = -1;
+        return _this;
+    }
+    VirtualTimeScheduler.prototype.flush = function () {
+        var _a = this, actions = _a.actions, maxFrames = _a.maxFrames;
+        var error, action;
         while ((action = actions[0]) && action.delay <= maxFrames) {
             actions.shift();
             this.frame = action.delay;
@@ -23,43 +42,51 @@ export class VirtualTimeScheduler extends AsyncScheduler {
             }
             throw error;
         }
+    };
+    VirtualTimeScheduler.frameTimeFactor = 10;
+    return VirtualTimeScheduler;
+}(AsyncScheduler_1.AsyncScheduler));
+exports.VirtualTimeScheduler = VirtualTimeScheduler;
+var VirtualAction = (function (_super) {
+    __extends(VirtualAction, _super);
+    function VirtualAction(scheduler, work, index) {
+        if (index === void 0) { index = scheduler.index += 1; }
+        var _this = _super.call(this, scheduler, work) || this;
+        _this.scheduler = scheduler;
+        _this.work = work;
+        _this.index = index;
+        _this.active = true;
+        _this.index = scheduler.index = index;
+        return _this;
     }
-}
-VirtualTimeScheduler.frameTimeFactor = 10;
-export class VirtualAction extends AsyncAction {
-    constructor(scheduler, work, index = scheduler.index += 1) {
-        super(scheduler, work);
-        this.scheduler = scheduler;
-        this.work = work;
-        this.index = index;
-        this.active = true;
-        this.index = scheduler.index = index;
-    }
-    schedule(state, delay = 0) {
+    VirtualAction.prototype.schedule = function (state, delay) {
+        if (delay === void 0) { delay = 0; }
         if (!this.id) {
-            return super.schedule(state, delay);
+            return _super.prototype.schedule.call(this, state, delay);
         }
         this.active = false;
-        const action = new VirtualAction(this.scheduler, this.work);
+        var action = new VirtualAction(this.scheduler, this.work);
         this.add(action);
         return action.schedule(state, delay);
-    }
-    requestAsyncId(scheduler, id, delay = 0) {
+    };
+    VirtualAction.prototype.requestAsyncId = function (scheduler, id, delay) {
+        if (delay === void 0) { delay = 0; }
         this.delay = scheduler.frame + delay;
-        const { actions } = scheduler;
+        var actions = scheduler.actions;
         actions.push(this);
         actions.sort(VirtualAction.sortActions);
         return true;
-    }
-    recycleAsyncId(scheduler, id, delay = 0) {
+    };
+    VirtualAction.prototype.recycleAsyncId = function (scheduler, id, delay) {
+        if (delay === void 0) { delay = 0; }
         return undefined;
-    }
-    _execute(state, delay) {
+    };
+    VirtualAction.prototype._execute = function (state, delay) {
         if (this.active === true) {
-            return super._execute(state, delay);
+            return _super.prototype._execute.call(this, state, delay);
         }
-    }
-    static sortActions(a, b) {
+    };
+    VirtualAction.sortActions = function (a, b) {
         if (a.delay === b.delay) {
             if (a.index === b.index) {
                 return 0;
@@ -77,6 +104,8 @@ export class VirtualAction extends AsyncAction {
         else {
             return -1;
         }
-    }
-}
+    };
+    return VirtualAction;
+}(AsyncAction_1.AsyncAction));
+exports.VirtualAction = VirtualAction;
 //# sourceMappingURL=VirtualTimeScheduler.js.map
