@@ -1,4 +1,3 @@
-/** PURE_IMPORTS_START _scheduler_asap,_scheduler_async,_scheduler_queue,_scheduler_animationFrame,_symbol_rxSubscriber,_symbol_iterator,_symbol_observable,_operators_index PURE_IMPORTS_END */
 export { Subject, AnonymousSubject } from './Subject';
 export { Observable } from './Observable';
 export { config } from './config';
@@ -157,17 +156,17 @@ import { rxSubscriber } from './symbol/rxSubscriber';
 import { iterator } from './symbol/iterator';
 import { observable } from './symbol/observable';
 import * as _operators from './operators/index';
-export var operators = _operators;
-var Scheduler = {
-    asap: asap,
-    queue: queue,
-    animationFrame: animationFrame,
-    async: async
+export const operators = _operators;
+let Scheduler = {
+    asap,
+    queue,
+    animationFrame,
+    async
 };
-var Symbol = {
-    rxSubscriber: rxSubscriber,
-    observable: observable,
-    iterator: iterator
+let Symbol = {
+    rxSubscriber,
+    observable,
+    iterator
 };
 export { Scheduler, Symbol };
 //# sourceMappingURL=Rx.js.map

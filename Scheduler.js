@@ -1,19 +1,11 @@
-var Scheduler = /*@__PURE__*/ (function () {
-    function Scheduler(SchedulerAction, now) {
-        if (now === void 0) {
-            now = Scheduler.now;
-        }
+export class Scheduler {
+    constructor(SchedulerAction, now = Scheduler.now) {
         this.SchedulerAction = SchedulerAction;
         this.now = now;
     }
-    Scheduler.prototype.schedule = function (work, delay, state) {
-        if (delay === void 0) {
-            delay = 0;
-        }
+    schedule(work, delay = 0, state) {
         return new this.SchedulerAction(this, work).schedule(state, delay);
-    };
-    Scheduler.now = function () { return Date.now(); };
-    return Scheduler;
-}());
-export { Scheduler };
+    }
+}
+Scheduler.now = () => Date.now();
 //# sourceMappingURL=Scheduler.js.map
